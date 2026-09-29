@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+
 import { useCart } from "../context/CartContext";
 import { STORE_CONFIG } from "../config/store";
 
@@ -20,13 +21,11 @@ export default function CartDrawer({ onClose }) {
     return item.sku || item.id;
   }
 
-  function getPackageLabel(item) {
-    if (!item.packageType) {
-      return "";
-    }
-
-    return item.packageType;
-  }
+  /*
+  ============================================================
+  WHATSAPP
+  ============================================================
+  */
 
   function sendToWhatsApp() {
     if (!cart.length) return;
@@ -35,19 +34,19 @@ export default function CartDrawer({ onClose }) {
 
     const items = cart
       .map((item) => {
-        const packageText = getPackageLabel(item);
-
         const variantText = [
           item.weight,
-          packageText,
         ]
           .filter(Boolean)
           .join(" — ");
 
         return `• ${item.name}${
-          variantText ? ` - ${variantText}` : ""
+          variantText
+            ? ` - ${variantText}`
+            : ""
         } × ${item.quantity} = ${formatPrice(
-          Number(item.price) * Number(item.quantity)
+          Number(item.price) *
+          Number(item.quantity)
         )} ج.م`;
       })
       .join("\n");
@@ -58,15 +57,20 @@ export default function CartDrawer({ onClose }) {
 
 ${items}
 
-الإجمالي: ${formatPrice(cartTotal)} ج.م
+الإجمالي: ${formatPrice(
+      cartTotal
+    )} ج.م
 
 برجاء التواصل معي لتأكيد الطلب.`;
 
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(
-      message
-    )}`;
+    const url =
+      `https://wa.me/${phone}?text=` +
+      encodeURIComponent(message);
 
-    window.open(url, "_blank");
+    window.open(
+      url,
+      "_blank"
+    );
   }
 
   return (
@@ -80,10 +84,16 @@ ${items}
           event.stopPropagation()
         }
       >
-        {/* ================= HEADER ================= */}
+
+        {/* ==================================================
+            HEADER
+            ================================================== */}
 
         <div className="cart-header">
-          <h2>🛒 السلة</h2>
+
+          <h2>
+            🛒 السلة
+          </h2>
 
           <button
             type="button"
@@ -92,44 +102,68 @@ ${items}
           >
             ✕
           </button>
+
         </div>
 
-        {/* ================= EMPTY CART ================= */}
+        {/* ==================================================
+            EMPTY
+            ================================================== */}
 
         {!cart.length ? (
-          <div className="empty-cart">
-            <div>🛒</div>
 
-            <h3>السلة فاضية</h3>
+          <div className="empty-cart">
+
+            <div>
+              🛒
+            </div>
+
+            <h3>
+              السلة فاضية
+            </h3>
 
             <p>
-              اختار المنتجات اللي تحبها ونبدأ طلبك.
+              اختار المنتجات اللي تحبها
+              ونبدأ طلبك.
             </p>
+
           </div>
+
         ) : (
+
           <>
-            {/* ================= CART ITEMS ================= */}
+
+            {/* ==================================================
+                CART ITEMS
+                ================================================== */}
 
             <div className="cart-items">
+
               {cart.map((item) => {
-                const itemKey = getItemKey(item);
+
+                const itemKey =
+                  getItemKey(item);
 
                 const itemTotal =
-                  Number(item.price || 0) *
-                  Number(item.quantity || 0);
+                  Number(
+                    item.price || 0
+                  ) *
+                  Number(
+                    item.quantity || 0
+                  );
 
                 return (
                   <div
                     className="cart-item"
                     key={itemKey}
                   >
-                    {/* Product Icon */}
+
+                    {/* PRODUCT ICON */}
 
                     <div className="cart-item-icon">
                       {item.icon || "🍯"}
                     </div>
 
-                    {/* Product Information */}
+                    {/* PRODUCT INFORMATION */}
 
                     <div className="cart-item-info">
 
@@ -137,7 +171,7 @@ ${items}
                         {item.name}
                       </strong>
 
-                      {/* Weight */}
+                      {/* WEIGHT */}
 
                       {item.weight && (
                         <small>
@@ -145,29 +179,26 @@ ${items}
                         </small>
                       )}
 
-                      {/* Package */}
-
-                      {item.packageType && (
-                        <small className="cart-item-package">
-                          العبوة:{" "}
-                          {item.packageType}
-                        </small>
-                      )}
-
-                      {/* Unit Price */}
+                      {/* UNIT PRICE */}
 
                       <small>
                         سعر الوحدة:{" "}
-                        {formatPrice(item.price)} ج.م
+                        {formatPrice(
+                          item.price
+                        )}{" "}
+                        ج.م
                       </small>
 
-                      {/* Total */}
+                      {/* TOTAL */}
 
                       <strong>
-                        {formatPrice(itemTotal)} ج.م
+                        {formatPrice(
+                          itemTotal
+                        )}{" "}
+                        ج.م
                       </strong>
 
-                      {/* Quantity */}
+                      {/* QUANTITY */}
 
                       <div className="quantity">
 
@@ -200,40 +231,52 @@ ${items}
                         </button>
 
                       </div>
+
                     </div>
 
-                    {/* Remove */}
+                    {/* REMOVE */}
 
                     <button
                       type="button"
                       className="remove-item"
                       onClick={() =>
-                        removeFromCart(itemKey)
+                        removeFromCart(
+                          itemKey
+                        )
                       }
                       aria-label="حذف المنتج"
                     >
                       🗑
                     </button>
+
                   </div>
                 );
               })}
+
             </div>
 
-            {/* ================= FOOTER ================= */}
+            {/* ==================================================
+                FOOTER
+                ================================================== */}
 
             <div className="cart-footer">
 
               <div className="cart-total">
+
                 <span>
                   الإجمالي
                 </span>
 
                 <strong>
-                  {formatPrice(cartTotal)} ج.م
+                  {formatPrice(
+                    cartTotal
+                  )}{" "}
+                  ج.م
                 </strong>
+
               </div>
 
-              {/* WhatsApp */}
+              {/* WHATSAPP */}
 
               <button
                 type="button"
@@ -243,7 +286,7 @@ ${items}
                 💬 طلب سريع عبر WhatsApp
               </button>
 
-              {/* Checkout */}
+              {/* CHECKOUT */}
 
               <Link
                 to="/checkout"
@@ -253,7 +296,7 @@ ${items}
                 🛒 إتمام الطلب
               </Link>
 
-              {/* Clear */}
+              {/* CLEAR */}
 
               <button
                 type="button"
@@ -264,8 +307,10 @@ ${items}
               </button>
 
             </div>
+
           </>
         )}
+
       </aside>
     </div>
   );

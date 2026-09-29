@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { useCart } from "../context/CartContext";
@@ -6,6 +6,8 @@ import {
   findVariant,
   getProductGroupByParam,
 } from "../utils/productGroups";
+
+import { getProductDetails } from "../data/productDetails";
 
 import "../variant-styles.css";
 
@@ -21,167 +23,139 @@ export default function ProductDetails() {
 
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [openFaq, setOpenFaq] = useState(null);
 
   /*
-    ============================
-    Available weights
-    ============================
+    ============================================================
+    PRODUCT DETAILS
+    ============================================================
+  */
+
+  const details = useMemo(() => {
+    if (!group) return null;
+
+    return getProductDetails(group.name);
+  }, [group]);
+
+  /*
+    ============================================================
+    CUSTOMER VARIANTS
+    ============================================================
+  */
+
+  const customerVariants = useMemo(() => {
+    if (!group?.customerVariants?.length) {
+      return [];
+    }
+
+    return [...group.customerVariants].sort(
+      (a, b) =>
+        Number(a.weightGrams) -
+        Number(b.weightGrams)
+    );
+  }, [group]);
+
+  /*
+    ============================================================
+    AVAILABLE WEIGHTS
+    ============================================================
   */
 
   const weights = useMemo(() => {
-    if (!group?.variants) return [];
+    if (!customerVariants.length) {
+      return [];
+    }
 
     return [
       ...new Map(
-        group.variants.map((variant) => [
+        customerVariants.map((variant) => [
           Number(variant.weightGrams),
           variant.weight,
         ])
       ).entries(),
     ];
-  }, [group]);
+  }, [customerVariants]);
 
   /*
-    ============================
-    Available packages
-    ============================
+    ============================================================
+    SELECTED WEIGHT
+    ============================================================
   */
 
-  const packages = useMemo(() => {
-    if (!group?.variants) return [];
-
-    return [
-      ...new Set(
-        group.variants
-          .map((variant) => variant.packageType)
-          .filter(Boolean)
-      ),
-    ];
-  }, [group]);
+  const [selectedWeight, setSelectedWeight] =
+    useState("");
 
   /*
-    ============================
-    Initial selection
-    ============================
+    ============================================================
+    INITIALIZE PRODUCT
+    ============================================================
   */
 
-  const [selectedWeight, setSelectedWeight] = useState(
-    () => group?.variants?.[0]?.weightGrams ?? ""
-  );
+  useEffect(() => {
+    if (!customerVariants.length) {
+      setSelectedWeight("");
+      return;
+    }
 
-  const [selectedPackage, setSelectedPackage] = useState(
-    () => group?.variants?.[0]?.packageType ?? ""
-  );
+    setSelectedWeight(
+      Number(customerVariants[0].weightGrams)
+    );
+
+    setQuantity(1);
+    setAdded(false);
+  }, [customerVariants]);
 
   /*
-    ============================
-    Selected Variant
-    ============================
+    ============================================================
+    SELECTED VARIANT
+    ============================================================
   */
 
   const selectedVariant = group
     ? findVariant(
-        group.variants,
-        selectedWeight,
-        selectedPackage
+        customerVariants,
+        selectedWeight
       )
     : null;
 
   /*
-    ============================
-    Weight selection
-    ============================
+    ============================================================
+    CHOOSE WEIGHT
+    ============================================================
   */
 
   function chooseWeight(weightGrams) {
-    const numericWeight = Number(weightGrams);
-
-    setSelectedWeight(numericWeight);
-
-    /*
-      Check whether current package exists
-      with the selected weight.
-    */
-
-    const compatible = group?.variants?.find(
-      (variant) =>
-        Number(variant.weightGrams) === numericWeight &&
-        variant.packageType === selectedPackage
-    );
-
-    /*
-      If current package doesn't exist for this weight,
-      automatically select the first available package.
-    */
-
-    if (!compatible) {
-      const firstForWeight = group?.variants?.find(
-        (variant) =>
-          Number(variant.weightGrams) === numericWeight
-      );
-
-      if (firstForWeight) {
-        setSelectedPackage(firstForWeight.packageType || "");
-      }
-    }
-
+    setSelectedWeight(Number(weightGrams));
+    setQuantity(1);
     setAdded(false);
   }
 
   /*
-    ============================
-    Package selection
-    ============================
+    ============================================================
+    QUANTITY
+    ============================================================
   */
 
-  function choosePackage(packageType) {
-    setSelectedPackage(packageType);
-
-    /*
-      Check whether current weight exists
-      with the selected package.
-    */
-
-    const compatible = group?.variants?.find(
-      (variant) =>
-        Number(variant.weightGrams) ===
-          Number(selectedWeight) &&
-        variant.packageType === packageType
+  function decreaseQuantity() {
+    setQuantity((value) =>
+      Math.max(1, value - 1)
     );
-
-    /*
-      If current weight doesn't exist,
-      select the first available weight for this package.
-    */
-
-    if (!compatible) {
-      const firstForPackage = group?.variants?.find(
-        (variant) =>
-          variant.packageType === packageType
-      );
-
-      if (firstForPackage) {
-        setSelectedWeight(
-          Number(firstForPackage.weightGrams)
-        );
-      }
-    }
 
     setAdded(false);
   }
 
+  function increaseQuantity() {
+    setQuantity((value) => value + 1);
+    setAdded(false);
+  }
+
   /*
-    ============================
-    Add to Cart
-    ============================
+    ============================================================
+    ADD TO CART
+    ============================================================
   */
 
   function handleAddToCart() {
-    /*
-      Never add a fallback variant.
-      Only add the exact selected SKU.
-    */
-
     if (!selectedVariant) {
       return;
     }
@@ -189,26 +163,28 @@ export default function ProductDetails() {
     addToCart({
       ...selectedVariant,
 
-      /*
-        Explicitly keep the selected variant data.
-      */
-
       quantity,
 
       sku: selectedVariant.sku,
-      price: Number(selectedVariant.price),
+
+      price: Number(
+        selectedVariant.price
+      ),
+
       weight: selectedVariant.weight,
-      weightGrams: Number(selectedVariant.weightGrams),
-      packageType: selectedVariant.packageType,
+
+      weightGrams: Number(
+        selectedVariant.weightGrams
+      ),
     });
 
     setAdded(true);
   }
 
   /*
-    ============================
-    Product not found
-    ============================
+    ============================================================
+    PRODUCT NOT FOUND
+    ============================================================
   */
 
   if (!group) {
@@ -218,9 +194,12 @@ export default function ProductDetails() {
         dir="rtl"
       >
         <div className="container no-products">
+
           <div>🍯</div>
 
-          <h2>المنتج غير موجود</h2>
+          <h2>
+            المنتج غير موجود
+          </h2>
 
           <Link
             to="/products"
@@ -228,15 +207,109 @@ export default function ProductDetails() {
           >
             العودة للمنتجات
           </Link>
+
         </div>
       </main>
     );
   }
 
   /*
-    ============================
-    Render
-    ============================
+    ============================================================
+    REVIEWS
+    ============================================================
+  */
+
+  const reviews =
+    details?.reviews || [];
+
+  const averageRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce(
+            (sum, review) =>
+              sum +
+              Number(
+                review.rating || 0
+              ),
+            0
+          ) / reviews.length
+        ).toFixed(1)
+      : "5.0";
+
+  /*
+    ============================================================
+    FAQ
+    ============================================================
+  */
+
+  const faqItems = [
+    {
+      question:
+        "ما هي الأوزان المتاحة؟",
+
+      answer:
+        "الأوزان المتاحة تختلف حسب المنتج، ويمكنك اختيار الوزن المناسب لك من الخيارات الموجودة في صفحة المنتج."
+    },
+
+    {
+      question:
+        "هل يمكنني تغيير الكمية بعد اختيار الوزن؟",
+
+      answer:
+        "نعم، يمكنك زيادة أو تقليل الكمية من خلال أزرار الكمية قبل إضافة المنتج إلى السلة."
+    },
+
+    {
+      question:
+        "متى يتم تجهيز الطلب؟",
+
+      answer:
+        "يتم تجهيز الطلب بعد تأكيده، ثم يتم التنسيق معك بشأن عملية التوصيل."
+    },
+
+    {
+      question:
+        "هل يوجد توصيل؟",
+
+      answer:
+        "نعم، تتوفر خدمة التوصيل، ويتم احتساب تكلفة التوصيل حسب عنوان الطلب ومنطقة التوصيل."
+    },
+
+    {
+      question:
+        "هل يمكن استبدال أو إرجاع المنتج؟",
+
+      answer:
+        "يمكن طلب الاستبدال أو الإرجاع وفقًا لسياسة الاستبدال والاسترجاع الخاصة ببيرنا فودز وحالة المنتج عند استلامه."
+    },
+
+    {
+      question:
+        "كيف يمكنني متابعة طلبي؟",
+
+      answer:
+        "يمكنك متابعة حالة طلبك من خلال صفحة تتبع الطلب باستخدام بيانات الطلب الخاصة بك."
+    },
+  ];
+
+  /*
+    ============================================================
+    TOGGLE FAQ
+    ============================================================
+  */
+
+  function toggleFaq(index) {
+    setOpenFaq((current) =>
+      current === index
+        ? null
+        : index
+    );
+  }
+
+  /*
+    ============================================================
+    RENDER
+    ============================================================
   */
 
   return (
@@ -246,9 +319,12 @@ export default function ProductDetails() {
     >
       <div className="container">
 
-        {/* Breadcrumb */}
+        {/* ====================================================
+            BREADCRUMB
+            ==================================================== */}
 
         <div className="breadcrumb">
+
           <Link to="/">
             الرئيسية
           </Link>
@@ -264,23 +340,38 @@ export default function ProductDetails() {
           <strong>
             {group.name}
           </strong>
+
         </div>
 
-        <div className="product-details">
+        {/* ====================================================
+            PRODUCT HERO
+            ==================================================== */}
 
-          {/* Product Image */}
+        <section className="product-details">
+
+          {/* ==================================================
+              PRODUCT IMAGE
+              ================================================== */}
 
           <div className="product-details-image">
-            <span>
-              {group.icon || "🍯"}
-            </span>
+
+            <div className="product-details-image-icon">
+
+              <span>
+                {group.icon || "🍯"}
+              </span>
+
+            </div>
 
             <small>
-              الصورة هنضيفها بعدين
+              صورة المنتج
             </small>
+
           </div>
 
-          {/* Product Information */}
+          {/* ==================================================
+              PRODUCT INFORMATION
+              ================================================== */}
 
           <div className="product-details-info">
 
@@ -292,25 +383,107 @@ export default function ProductDetails() {
               {group.name}
             </h1>
 
+            {details?.tagline && (
+              <p className="product-tagline">
+                {details.tagline}
+              </p>
+            )}
+
+            {/* ==================================================
+                RATING
+                ================================================== */}
+
+            <div className="product-rating-summary">
+
+              <div className="product-rating-stars">
+
+                {"★".repeat(
+                  Math.round(
+                    Number(
+                      averageRating
+                    )
+                  )
+                )}
+
+                <span className="rating-number">
+                  {averageRating}
+                </span>
+
+              </div>
+
+              <span className="rating-count">
+                ({reviews.length} آراء)
+              </span>
+
+            </div>
+
+            {/* ==================================================
+                DESCRIPTION
+                ================================================== */}
+
             <p className="product-long-description">
-              اختار المواصفة المناسبة لك،
-              والسعر بيتغير تلقائيًا حسب الوزن
-              ونوع العبوة.
+
+              استمتع بمذاق{" "}
+              {group.name}
+
+              <br />
+
+              واختر الوزن المناسب لك.
+
+              <br />
+
+              منتجات مختارة بعناية لتقدم لك
+              تجربة مميزة في كل مرة.
+
             </p>
 
-            {/* ================= WEIGHT ================= */}
+            {/* ==================================================
+                HIGHLIGHTS
+                ================================================== */}
+
+            {details?.highlights?.length > 0 && (
+              <div className="product-highlights">
+
+                {details.highlights.map(
+                  (item, index) => (
+                    <div
+                      className="product-highlight"
+                      key={`${item}-${index}`}
+                    >
+
+                      <span>
+                        ✓
+                      </span>
+
+                      <p>
+                        {item}
+                      </p>
+
+                    </div>
+                  )
+                )}
+
+              </div>
+            )}
+
+            {/* ==================================================
+                WEIGHT
+                ================================================== */}
 
             {weights.length > 0 && (
               <div className="variant-selector">
 
                 <div className="variant-selector-header">
+
                   <strong>
                     الوزن
                   </strong>
 
                   <span>
-                    {selectedVariant?.weight || "-"}
+                    {selectedVariant?.weight ||
+                      "-"}
                   </span>
+
                 </div>
 
                 <div className="variant-options">
@@ -318,28 +491,25 @@ export default function ProductDetails() {
                   {weights.map(
                     ([grams, label]) => {
 
-                      const available =
-                        group.variants.some(
-                          (variant) =>
-                            Number(
-                              variant.weightGrams
-                            ) === Number(grams)
-                        );
+                      const isSelected =
+                        Number(
+                          selectedWeight
+                        ) ===
+                        Number(grams);
 
                       return (
                         <button
                           key={grams}
                           type="button"
-                          disabled={!available}
                           className={
-                            Number(
-                              selectedWeight
-                            ) === Number(grams)
+                            isSelected
                               ? "selected"
                               : ""
                           }
                           onClick={() =>
-                            chooseWeight(grams)
+                            chooseWeight(
+                              grams
+                            )
                           }
                         >
                           {label}
@@ -349,106 +519,29 @@ export default function ProductDetails() {
                   )}
 
                 </div>
+
               </div>
             )}
 
-            {/* ================= PACKAGE ================= */}
-
-            {packages.length > 1 && (
-              <div className="variant-selector">
-
-                <div className="variant-selector-header">
-                  <strong>
-                    نوع العبوة
-                  </strong>
-
-                  <span>
-                    {selectedVariant?.packageType ||
-                      "-"}
-                  </span>
-                </div>
-
-                <div className="variant-options">
-
-                  {packages.map(
-                    (packageType) => {
-
-                      const available =
-                        group.variants.some(
-                          (variant) =>
-                            variant.packageType ===
-                              packageType &&
-                            Number(
-                              variant.weightGrams
-                            ) ===
-                              Number(
-                                selectedWeight
-                              )
-                        );
-
-                      return (
-                        <button
-                          key={packageType}
-                          type="button"
-                          disabled={!available}
-                          className={
-                            selectedPackage ===
-                            packageType
-                              ? "selected"
-                              : ""
-                          }
-                          onClick={() =>
-                            choosePackage(
-                              packageType
-                            )
-                          }
-                        >
-                          {packageType}
-                        </button>
-                      );
-                    }
-                  )}
-
-                </div>
-              </div>
-            )}
-
-            {/* ================= SELECTED VARIANT ================= */}
-
-            <div className="selected-variant-box">
-
-              <span>
-                الاختيار الحالي
-              </span>
-
-              <strong>
-                {selectedVariant
-                  ? `${selectedVariant.weight} — ${
-                      selectedVariant.packageType ||
-                      "عبوة"
-                    }`
-                  : "اختر المواصفة"}
-              </strong>
-
-              {selectedVariant?.sku && (
-                <small>
-                  SKU: {selectedVariant.sku}
-                </small>
-              )}
-
-            </div>
-
-            {/* ================= PRICE ================= */}
+            {/* ==================================================
+                PRICE
+                ================================================== */}
 
             <div className="product-price">
+
               {selectedVariant
-                ? `${Number(
-                    selectedVariant.price
+                ? `${(
+                    Number(
+                      selectedVariant.price
+                    ) * quantity
                   ).toFixed(2)} ج.م`
                 : "—"}
+
             </div>
 
-            {/* ================= QUANTITY ================= */}
+            {/* ==================================================
+                QUANTITY
+                ================================================== */}
 
             <div className="quantity-box">
 
@@ -460,14 +553,10 @@ export default function ProductDetails() {
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setQuantity((value) =>
-                      Math.max(
-                        1,
-                        value - 1
-                      )
-                    )
+                  onClick={
+                    decreaseQuantity
                   }
+                  aria-label="تقليل الكمية"
                 >
                   −
                 </button>
@@ -478,31 +567,119 @@ export default function ProductDetails() {
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setQuantity(
-                      (value) =>
-                        value + 1
-                    )
+                  onClick={
+                    increaseQuantity
                   }
+                  aria-label="زيادة الكمية"
                 >
                   +
                 </button>
 
               </div>
+
             </div>
 
-            {/* ================= ADD TO CART ================= */}
+            {/* ==================================================
+                ADD TO CART
+                ==================================================
+                
+                مهم:
+                الزر أصبح مباشرة بعد الكمية.
+                ================================================== */}
 
             <button
               type="button"
               className="add-product-btn"
-              onClick={handleAddToCart}
-              disabled={!selectedVariant}
+              onClick={
+                handleAddToCart
+              }
+              disabled={
+                !selectedVariant
+              }
             >
               {added
                 ? "✓ تمت الإضافة للسلة"
                 : "أضف للسلة"}
             </button>
+
+            {/* ==================================================
+                ORDER INFORMATION
+                ==================================================
+                
+                التوصيل وتجهيز الطلب والاستبدال
+                أصبحوا بعد زر أضف للسلة.
+                ================================================== */}
+
+            <div className="product-order-info">
+
+              <div className="product-order-info-item">
+
+                <span>
+                  🚚
+                </span>
+
+                <div>
+
+                  <strong>
+                    التوصيل
+                  </strong>
+
+                  <p>
+                    تكلفة التوصيل تحسب حسب
+                    منطقة التوصيل.
+                  </p>
+
+                </div>
+
+              </div>
+
+              <div className="product-order-info-item">
+
+                <span>
+                  📦
+                </span>
+
+                <div>
+
+                  <strong>
+                    تجهيز الطلب
+                  </strong>
+
+                  <p>
+                    يتم تجهيز طلبك بعناية
+                    قبل التوصيل.
+                  </p>
+
+                </div>
+
+              </div>
+
+              <div className="product-order-info-item">
+
+                <span>
+                  ↩️
+                </span>
+
+                <div>
+
+                  <strong>
+                    الاستبدال والاسترجاع
+                  </strong>
+
+                  <p>
+                    وفقًا لسياسة الاستبدال
+                    والاسترجاع.
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* ==================================================
+                GO TO CART
+                ================================================== */}
 
             {added && (
               <Link
@@ -514,7 +691,373 @@ export default function ProductDetails() {
             )}
 
           </div>
+
+        </section>
+
+        {/* ======================================================
+            HEALTH BENEFITS
+            ====================================================== */}
+
+        {details?.healthBenefits?.length >
+          0 && (
+          <section className="product-content-section health-benefits-section">
+
+            <div className="section-heading">
+
+              <span className="section-eyebrow">
+                BERNA FOODS
+              </span>
+
+              <h2>
+                فوائد وخصائص المنتج
+              </h2>
+
+              <p>
+                تعرف على أبرز الخصائص الغذائية
+                المرتبطة بهذا النوع من المنتجات.
+              </p>
+
+            </div>
+
+            <div className="health-benefits-grid">
+
+              {details.healthBenefits.map(
+                (benefit, index) => (
+                  <article
+                    className="health-benefit-card"
+                    key={`${benefit.title}-${index}`}
+                  >
+
+                    <div className="health-benefit-icon">
+                      {benefit.icon}
+                    </div>
+
+                    <div>
+
+                      <h3>
+                        {benefit.title}
+                      </h3>
+
+                      <p>
+                        {benefit.text}
+                      </p>
+
+                    </div>
+
+                  </article>
+                )
+              )}
+
+            </div>
+
+            <div className="health-disclaimer">
+
+              <span>
+                ℹ️
+              </span>
+
+              <p>
+                المعلومات المذكورة هنا معلومات
+                غذائية عامة وليست بديلاً عن
+                الاستشارة الطبية أو علاجًا لحالة
+                مرضية محددة.
+              </p>
+
+            </div>
+
+          </section>
+        )}
+
+        {/* ======================================================
+            CUSTOMER REVIEWS
+            ====================================================== */}
+
+        {reviews.length > 0 && (
+          <section className="product-content-section reviews-section">
+
+            <div className="section-heading">
+
+              <span className="section-eyebrow">
+                CUSTOMER REVIEWS
+              </span>
+
+              <h2>
+                آراء العملاء
+              </h2>
+
+              <p>
+                تجارب وآراء عملاء بيرنا.
+              </p>
+
+            </div>
+
+            <div className="reviews-summary">
+
+              <div className="reviews-score">
+
+                <strong>
+                  {averageRating}
+                </strong>
+
+                <div className="reviews-score-stars">
+                  ★★★★★
+                </div>
+
+                <span>
+                  متوسط التقييم
+                </span>
+
+              </div>
+
+              <div className="reviews-count-box">
+
+                <strong>
+                  {reviews.length}
+                </strong>
+
+                <span>
+                  مراجعة
+                </span>
+
+              </div>
+
+            </div>
+
+            <div className="reviews-grid">
+
+              {reviews.map(
+                (review, index) => (
+                  <article
+                    className="review-card"
+                    key={`${review.name}-${index}`}
+                  >
+
+                    <div className="review-header">
+
+                      <div className="review-avatar">
+                        {review.name
+                          ?.charAt(0) ||
+                          "ع"}
+                      </div>
+
+                      <div>
+
+                        <strong>
+                          {review.name}
+                        </strong>
+
+                        <div className="review-stars">
+
+                          {"★".repeat(
+                            Number(
+                              review.rating ||
+                                5
+                            )
+                          )}
+
+                          {"☆".repeat(
+                            5 -
+                              Number(
+                                review.rating ||
+                                  5
+                              )
+                          )}
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                    <p>
+                      "{review.text}"
+                    </p>
+
+                    <span className="verified-review">
+                      ✓ تجربة عميل
+                    </span>
+
+                  </article>
+                )
+              )}
+
+            </div>
+
+          </section>
+        )}
+
+        {/* ======================================================
+            FAQ
+            ====================================================== */}
+
+        <section className="product-content-section faq-section">
+
+          <div className="section-heading">
+
+            <span className="section-eyebrow">
+              BERNA FOODS
+            </span>
+
+            <h2>
+              الأسئلة الشائعة
+            </h2>
+
+            <p>
+              كل ما تحتاج معرفته قبل إتمام طلبك.
+            </p>
+
+          </div>
+
+          <div className="faq-list">
+
+            {faqItems.map(
+              (item, index) => {
+
+                const isOpen =
+                  openFaq === index;
+
+                return (
+                  <article
+                    className={`faq-item ${
+                      isOpen
+                        ? "faq-item-open"
+                        : ""
+                    }`}
+                    key={item.question}
+                  >
+
+                    <button
+                      type="button"
+                      className="faq-question"
+                      onClick={() =>
+                        toggleFaq(index)
+                      }
+                      aria-expanded={
+                        isOpen
+                      }
+                    >
+
+                      <span>
+                        {item.question}
+                      </span>
+
+                      <span className="faq-icon">
+                        {isOpen
+                          ? "−"
+                          : "+"}
+                      </span>
+
+                    </button>
+
+                    {isOpen && (
+                      <div className="faq-answer">
+
+                        <p>
+                          {item.answer}
+                        </p>
+
+                      </div>
+                    )}
+
+                  </article>
+                );
+              }
+            )}
+
+          </div>
+
+        </section>
+
+        {/* ======================================================
+            ORDER TRUST
+            ====================================================== */}
+
+        <section className="product-trust-section">
+
+          <div className="product-trust-grid">
+
+            <div className="product-trust-item">
+
+              <span>
+                🔒
+              </span>
+
+              <div>
+
+                <strong>
+                  طلب آمن
+                </strong>
+
+                <p>
+                  بيانات طلبك يتم التعامل
+                  معها بأمان.
+                </p>
+
+              </div>
+
+            </div>
+
+            <div className="product-trust-item">
+
+              <span>
+                ❤️
+              </span>
+
+              <div>
+
+                <strong>
+                  اختيار بعناية
+                </strong>
+
+                <p>
+                  منتجات مختارة بعناية
+                  لتجربة أفضل.
+                </p>
+
+              </div>
+
+            </div>
+
+            <div className="product-trust-item">
+
+              <span>
+                🚚
+              </span>
+
+              <div>
+
+                <strong>
+                  توصيل للباب
+                </strong>
+
+                <p>
+                  نوصل طلبك إلى العنوان
+                  المحدد في الطلب.
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* ======================================================
+            BACK TO PRODUCTS
+            ====================================================== */}
+
+        <div className="product-details-back">
+
+          <Link
+            to="/products"
+            className="back-to-products"
+          >
+            ← العودة إلى المنتجات
+          </Link>
+
         </div>
+
       </div>
     </main>
   );

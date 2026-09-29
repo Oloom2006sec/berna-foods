@@ -1,0 +1,790 @@
+/* ============================================================
+   BERNA FOODS
+   PRODUCT DETAILS
+============================================================ */
+
+.product-details-page {
+  background: #fffdf8;
+  color: #29251f;
+  min-height: 100vh;
+}
+
+.pd-container {
+  width: min(1180px, calc(100% - 40px));
+  margin: auto;
+}
+
+/* ============================================================
+   BREADCRUMB
+============================================================ */
+
+.pd-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 0;
+  color: #999;
+  font-size: 13px;
+}
+
+.pd-breadcrumb a {
+  color: #777;
+  text-decoration: none;
+}
+
+.pd-breadcrumb strong {
+  color: #333;
+}
+
+/* ============================================================
+   HERO
+============================================================ */
+
+.pd-hero {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 70px;
+  align-items: start;
+  padding: 10px 0 90px;
+}
+
+/* ============================================================
+   GALLERY
+============================================================ */
+
+.pd-gallery {
+  position: sticky;
+  top: 30px;
+}
+
+.pd-main-image {
+  height: 570px;
+  border-radius: 28px;
+  background: #fff1c9;
+  border: 1px solid #f0dfb8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.pd-main-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pd-product-icon {
+  font-size: 150px;
+}
+
+.pd-gallery-heart {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 2;
+
+  width: 46px;
+  height: 46px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: white;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+
+  cursor: pointer;
+  font-size: 22px;
+  color: #777;
+}
+
+.pd-gallery-heart.active {
+  color: #d19708;
+}
+
+.pd-thumbnails {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.pd-thumbnails button {
+  width: 72px;
+  height: 72px;
+
+  border-radius: 14px;
+  border: 1px solid #eadfca;
+  background: #fff;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pd-thumbnails button.active {
+  border: 2px solid #cf9209;
+}
+
+.pd-thumbnails img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.pd-thumbnails span {
+  font-size: 35px;
+}
+
+/* ============================================================
+   PURCHASE
+============================================================ */
+
+.pd-purchase {
+  padding-top: 25px;
+}
+
+.pd-category {
+  color: #c58b0a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pd-purchase h1 {
+  margin: 12px 0 10px;
+
+  font-size: clamp(36px, 4vw, 54px);
+  line-height: 1.15;
+
+  color: #27231e;
+}
+
+.pd-rating {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #888;
+}
+
+.stars {
+  color: #d99b09;
+  letter-spacing: 3px;
+  font-size: 17px;
+}
+
+.pd-divider {
+  height: 1px;
+  background: #eee4d3;
+  margin: 25px 0;
+}
+
+.pd-short-description {
+  color: #777;
+  line-height: 2;
+  font-size: 15px;
+}
+
+.pd-price {
+  color: #c88d06;
+  font-size: 31px;
+  font-weight: 800;
+  margin: 28px 0;
+}
+
+/* ============================================================
+   WEIGHT
+============================================================ */
+
+.pd-option {
+  margin-top: 25px;
+}
+
+.pd-option-title {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.pd-option-title span {
+  color: #888;
+}
+
+.pd-weight-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pd-weight-options button {
+  min-width: 85px;
+  padding: 14px 20px;
+
+  border-radius: 12px;
+  border: 1px solid #dfd5c4;
+
+  background: white;
+
+  cursor: pointer;
+
+  font-family: inherit;
+}
+
+.pd-weight-options button:hover {
+  border-color: #cf9209;
+}
+
+.pd-weight-options button.active {
+  background: #cf9209;
+  color: white;
+  border-color: #cf9209;
+}
+
+/* ============================================================
+   PACKAGE
+============================================================ */
+
+.pd-package {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-top: 18px;
+  padding: 17px 20px;
+
+  border: 1px solid #eee4d3;
+  border-radius: 13px;
+
+  background: #faf7f0;
+}
+
+.pd-package span {
+  color: #999;
+}
+
+.pd-package strong {
+  color: #333;
+}
+
+/* ============================================================
+   CART
+============================================================ */
+
+.pd-cart-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 12px;
+
+  margin-top: 18px;
+}
+
+.pd-quantity {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border: 1px solid #dfd5c4;
+  border-radius: 12px;
+  background: white;
+
+  padding: 5px;
+}
+
+.pd-quantity button {
+  border: none;
+  background: transparent;
+
+  width: 38px;
+  height: 42px;
+
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.pd-quantity span {
+  font-weight: 700;
+}
+
+.pd-add-cart {
+  border: none;
+  border-radius: 12px;
+
+  background: #cf9209;
+  color: white;
+
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.pd-add-cart:hover {
+  background: #b87e05;
+  transform: translateY(-1px);
+}
+
+.pd-add-cart.added {
+  background: #218653;
+}
+
+.pd-add-cart:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   TRUST
+============================================================ */
+
+.pd-trust {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+.pd-trust > div {
+  display: grid;
+  grid-template-columns: 35px 1fr;
+  column-gap: 8px;
+
+  padding: 15px;
+
+  border: 1px solid #eee4d3;
+  border-radius: 13px;
+
+  background: white;
+}
+
+.pd-trust span {
+  grid-row: span 2;
+  font-size: 20px;
+}
+
+.pd-trust strong {
+  font-size: 13px;
+}
+
+.pd-trust small {
+  color: #999;
+  font-size: 11px;
+}
+
+/* ============================================================
+   SECTION
+============================================================ */
+
+.pd-section {
+  padding: 80px 0;
+}
+
+.pd-section-heading {
+  text-align: center;
+  margin-bottom: 38px;
+}
+
+.pd-section-heading > span {
+  color: #c88d06;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.pd-section-heading h2 {
+  margin: 9px 0;
+  font-size: 34px;
+}
+
+.pd-section-heading p {
+  color: #999;
+  margin: 0;
+}
+
+/* ============================================================
+   BENEFITS
+============================================================ */
+
+.pd-benefits {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.pd-benefit-card {
+  background: white;
+  border: 1px solid #eee4d3;
+  border-radius: 20px;
+
+  padding: 30px 22px;
+
+  text-align: center;
+
+  transition: 0.25s;
+}
+
+.pd-benefit-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(70, 50, 20, 0.07);
+}
+
+.pd-benefit-icon {
+  font-size: 38px;
+  margin-bottom: 12px;
+}
+
+.pd-benefit-card h3 {
+  margin: 8px 0;
+}
+
+.pd-benefit-card p {
+  color: #999;
+  line-height: 1.8;
+  font-size: 13px;
+}
+
+/* ============================================================
+   INFO
+============================================================ */
+
+.pd-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+
+  padding: 30px 0 90px;
+}
+
+.pd-info-card {
+  background: white;
+  border: 1px solid #eee4d3;
+  border-radius: 22px;
+  padding: 30px;
+}
+
+.pd-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-bottom: 25px;
+}
+
+.pd-card-heading span {
+  font-size: 27px;
+}
+
+.pd-card-heading h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.pd-info-card > p {
+  color: #777;
+  line-height: 2;
+}
+
+/* ============================================================
+   SPECIFICATIONS
+============================================================ */
+
+.pd-spec-row {
+  display: flex;
+  justify-content: space-between;
+
+  padding: 17px 0;
+
+  border-bottom: 1px solid #eee8dc;
+}
+
+.pd-spec-row:last-child {
+  border-bottom: none;
+}
+
+.pd-spec-row span {
+  color: #999;
+}
+
+.pd-spec-row strong {
+  color: #333;
+}
+
+/* ============================================================
+   USAGE
+============================================================ */
+
+.pd-usage-section {
+  padding: 30px 0 100px;
+}
+
+.pd-usage-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.pd-usage-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+  background: white;
+  border: 1px solid #eee4d3;
+  border-radius: 18px;
+
+  padding: 22px;
+}
+
+.pd-usage-card > span {
+  width: 45px;
+  height: 45px;
+
+  border-radius: 50%;
+
+  background: #fff1c9;
+  color: #c88d06;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 800;
+}
+
+.pd-usage-card p {
+  margin: 0;
+  line-height: 1.8;
+  color: #666;
+}
+
+/* ============================================================
+   REVIEWS
+============================================================ */
+
+.pd-reviews {
+  padding: 80px 0;
+}
+
+.pd-review-rating {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+
+  margin-top: 15px;
+}
+
+.pd-review-rating strong {
+  font-size: 30px;
+}
+
+.pd-review-rating span {
+  color: #d99b09;
+  letter-spacing: 3px;
+}
+
+.pd-review-rating small {
+  color: #999;
+}
+
+.pd-review-placeholder {
+  text-align: center;
+
+  background: white;
+  border: 1px solid #eee4d3;
+  border-radius: 22px;
+
+  padding: 50px;
+}
+
+.pd-review-placeholder > div {
+  font-size: 45px;
+}
+
+.pd-review-placeholder h3 {
+  margin-bottom: 5px;
+}
+
+.pd-review-placeholder p {
+  color: #999;
+}
+
+/* ============================================================
+   FAQ
+============================================================ */
+
+.pd-faq {
+  max-width: 850px;
+  margin: auto;
+  padding: 80px 0;
+}
+
+.pd-faq-list {
+  display: grid;
+  gap: 10px;
+}
+
+.pd-faq-item {
+  background: white;
+  border: 1px solid #eee4d3;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.pd-faq-item summary {
+  list-style: none;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 22px;
+
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.pd-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.pd-faq-item summary b {
+  color: #c88d06;
+  font-size: 22px;
+}
+
+.pd-faq-item p {
+  margin: 0;
+  padding: 0 22px 22px;
+
+  color: #777;
+  line-height: 2;
+}
+
+/* ============================================================
+   BACK
+============================================================ */
+
+.pd-back {
+  text-align: center;
+  padding: 30px 0 90px;
+}
+
+.pd-back a {
+  color: #c88d06;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+/* ============================================================
+   NOT FOUND
+============================================================ */
+
+.pd-not-found {
+  text-align: center;
+  padding: 120px 0;
+}
+
+.pd-not-found-icon {
+  font-size: 70px;
+}
+
+.pd-not-found h2 {
+  margin: 20px 0;
+}
+
+.pd-primary-btn {
+  display: inline-block;
+  padding: 14px 25px;
+
+  background: #cf9209;
+  color: white;
+
+  border-radius: 12px;
+  text-decoration: none;
+}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+
+@media (max-width: 900px) {
+  .pd-hero {
+    grid-template-columns: 1fr;
+    gap: 35px;
+  }
+
+  .pd-gallery {
+    position: static;
+  }
+
+  .pd-main-image {
+    height: 430px;
+  }
+
+  .pd-benefits {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pd-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pd-usage-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .pd-container {
+    width: min(100% - 24px, 1180px);
+  }
+
+  .pd-breadcrumb {
+    padding: 18px 0;
+    font-size: 11px;
+  }
+
+  .pd-main-image {
+    height: 330px;
+    border-radius: 20px;
+  }
+
+  .pd-product-icon {
+    font-size: 100px;
+  }
+
+  .pd-purchase h1 {
+    font-size: 34px;
+  }
+
+  .pd-trust {
+    grid-template-columns: 1fr;
+  }
+
+  .pd-cart-row {
+    grid-template-columns: 1fr;
+  }
+
+  .pd-benefits {
+    grid-template-columns: 1fr;
+  }
+
+  .pd-info-card {
+    padding: 22px;
+  }
+
+  .pd-section-heading h2 {
+    font-size: 28px;
+  }
+
+  .pd-spec-row {
+    gap: 15px;
+  }
+}

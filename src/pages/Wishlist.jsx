@@ -11,17 +11,23 @@ export default function Wishlist() {
 
   if (!wishlist.length) {
     return (
-      <main className="wishlist-page" dir="rtl">
+      <main
+        className="wishlist-page"
+        dir="rtl"
+      >
         <div className="container empty-wishlist">
 
           <div className="empty-wishlist-icon">
             ♡
           </div>
 
-          <h1>المفضلة فاضية</h1>
+          <h1>
+            المفضلة فاضية
+          </h1>
 
           <p>
-            احفظ المنتجات اللي عجبتك هنا علشان ترجع لها بسهولة.
+            احفظ المنتجات اللي عجبتك هنا
+            علشان ترجع لها بسهولة.
           </p>
 
           <Link
@@ -37,20 +43,28 @@ export default function Wishlist() {
   }
 
   return (
-    <main className="wishlist-page" dir="rtl">
+    <main
+      className="wishlist-page"
+      dir="rtl"
+    >
       <div className="container">
 
-        <div className="wishlist-header">
+        {/* ================= HEADER ================= */}
+
+        <header className="wishlist-header">
 
           <div>
             <span className="eyebrow">
               BERNA FOODS
             </span>
 
-            <h1>منتجاتك المفضلة</h1>
+            <h1>
+              منتجاتك المفضلة
+            </h1>
 
             <p>
-              عندك {wishlistCount} منتج في المفضلة.
+              عندك {wishlistCount} منتج
+              في المفضلة.
             </p>
           </div>
 
@@ -62,15 +76,19 @@ export default function Wishlist() {
             مسح المفضلة
           </button>
 
-        </div>
+        </header>
 
-        <div className="products-grid all-products-grid">
+        {/* ================= PRODUCTS ================= */}
+
+        <div className="products-grid all-products-grid wishlist-products-grid">
+
           {wishlist.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
             />
           ))}
+
         </div>
 
       </div>
