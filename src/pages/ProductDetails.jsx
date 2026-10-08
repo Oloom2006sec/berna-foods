@@ -398,9 +398,26 @@ export default function ProductDetails() {
 
             <div className="product-details-image-icon">
 
-              <span>
-                {group.icon || "🍯"}
-              </span>
+              {group.image ? (
+                <img
+                  src={group.image}
+                  alt={group.name}
+                  loading="lazy"
+                  style={{
+                    width: "86%",
+                    height: "86%",
+                    objectFit: "contain",
+                    objectPosition: "center",
+                    display: "block",
+                    margin: "auto",
+                    mixBlendMode: "multiply",
+                  }}
+                />
+              ) : (
+                <span>
+                  {group.icon || "🍯"}
+                </span>
+              )}
 
             </div>
 

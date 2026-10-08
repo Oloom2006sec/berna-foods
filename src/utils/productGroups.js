@@ -19,6 +19,66 @@ import { products } from "../data/products";
 
 /*
   ============================================================
+  PRODUCT IMAGES
+  ============================================================
+
+  صورة واحدة لكل Product Group.
+
+  الصور موجودة داخل:
+  /public/images/products/
+
+  لذلك المسار يبدأ من:
+  /images/products/
+  ============================================================
+*/
+
+const PRODUCT_IMAGES = {
+  "عسل أعشاب جبلية":
+    "/images/products/berna_honey_mountain_herbs_FINAL.webp",
+
+  "عسل الموالح":
+    "/images/products/berna_honey_almawleh_jar.webp",
+
+  "عسل حبة البركة":
+    "/images/products/berna_honey_habbat_elbaraka_dark_jar.webp",
+
+  "عسل البرسيم":
+    "/images/products/berna_honey_albarsim_jar.webp",
+
+  "عسل بالمكسرات":
+    "/images/products/berna_honey_nuts_jar.webp",
+
+  "زيت الزيتون":
+    "/images/products/berna_olive_oil_bottle.webp",
+
+  "دبس الرمان":
+    "/images/products/berna_pomegranate_molasses_bottle.webp",
+
+  "خل التفاح":
+    "/images/products/berna_apple_cider_vinegar.webp",
+
+  "صويا صوص":
+    "/images/products/berna_soy_sauce_bottle.webp",
+
+  "طحينة":
+    "/images/products/berna_tahini_realistic_jar.webp",
+
+  "عسل أسود":
+    "/images/products/berna_black_honey_jar.webp",
+
+  "عسل سدر مصري":
+    "/images/products/berna_honey_molasses_egyptian_jar.webp",
+
+  "عسل بردقوش":
+    "/images/products/berna_honey_bardaqous_jar.webp",
+
+  "عسل أعشاب برية":
+    "/images/products/berna_honey_wild_herbs_jar.webp",
+};
+
+
+/*
+  ============================================================
   GROUP PRODUCTS
   ============================================================
 */
@@ -42,6 +102,13 @@ export function groupProducts(source = products) {
         category: product.category,
 
         icon: product.icon,
+
+        /*
+          صورة المنتج الرئيسية
+        */
+
+        image:
+          PRODUCT_IMAGES[product.name] || "",
 
         description:
           product.description?.replace(

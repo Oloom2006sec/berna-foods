@@ -157,10 +157,24 @@ ${items}
                     key={itemKey}
                   >
 
-                    {/* PRODUCT ICON */}
+                    {/* PRODUCT IMAGE */}
 
                     <div className="cart-item-icon">
-                      {item.icon || "🍯"}
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          loading="lazy"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "contain",
+                            display: "block",
+                          }}
+                        />
+                      ) : (
+                        item.icon || "🍯"
+                      )}
                     </div>
 
                     {/* PRODUCT INFORMATION */}

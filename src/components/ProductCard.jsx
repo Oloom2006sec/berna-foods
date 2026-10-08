@@ -18,6 +18,7 @@ function buildWishlistItem(product) {
     name: product.name,
     category: product.category,
     icon: product.icon || "🍯",
+    image: product.image || "",
 
     description:
       product.description ||
@@ -239,9 +240,26 @@ export default function ProductCard({ product }) {
           aria-label={`عرض تفاصيل ${product.name}`}
         >
           <div className="product-image">
-            <span>
-              {product.icon || "🍯"}
-            </span>
+            {product.image ? (
+              <img
+                src={product.image}
+                alt={product.name}
+                loading="lazy"
+                style={{
+                  width: "82%",
+                  height: "82%",
+                  objectFit: "contain",
+                  objectPosition: "center",
+                  display: "block",
+                  margin: "auto",
+                  mixBlendMode: "multiply",
+                }}
+              />
+            ) : (
+              <span>
+                {product.icon || "🍯"}
+              </span>
+            )}
           </div>
         </Link>
       </div>
