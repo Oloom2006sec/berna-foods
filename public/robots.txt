@@ -1,0 +1,4 @@
+﻿User-agent: *
+Allow: /
+
+Sitemap: https://berna-foods.vercel.app/sitemap.xml
