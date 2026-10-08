@@ -10,13 +10,13 @@ function buildWishlistItem(product) {
       ? product.customerVariants
       : product.variants || [];
 
+  const firstVariant = variants[0] || {};
+
   return {
     id: product.id,
     groupId: product.id,
-
     name: product.name,
     category: product.category,
-
     icon: product.icon || "🍯",
 
     description:
@@ -26,27 +26,25 @@ function buildWishlistItem(product) {
     minPrice: product.minPrice,
     maxPrice: product.maxPrice,
 
-    // مهم جدًا:
-    // نحفظ كل الـ variants وليس أول Variant فقط
-    variants: variants,
+    price: firstVariant.price,
+    weight: firstVariant.weight,
+    weightGrams: firstVariant.weightGrams,
 
-    customerVariants: variants,
-
-    available: product.available ?? true,
+    sku: firstVariant.sku,
+    available: firstVariant.available ?? true,
   };
 }
+
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
 
-  const {
-    wishlist,
-    toggleWishlist,
-  } = useWishlist();
+  const { wishlist, toggleWishlist } =
+    useWishlist();
 
   /*
-  ============================================================
-  CUSTOMER VARIANTS
-  ============================================================
+    ============================================================
+    CUSTOMER VARIANTS
+    ============================================================
   */
 
   const variants = useMemo(() => {
@@ -68,35 +66,34 @@ export default function ProductCard({ product }) {
   }, [product]);
 
   /*
-  ============================================================
-  SELECTED VARIANT
-  ============================================================
+    ============================================================
+    SELECTED VARIANT
+    ============================================================
   */
 
-  const [selectedSku, setSelectedSku] = useState(
-    variants[0]?.sku || ""
-  );
+  const [selectedSku, setSelectedSku] =
+    useState(variants[0]?.sku || "");
 
   /*
-  ============================================================
-  QUANTITY
-  ============================================================
+    ============================================================
+    QUANTITY
+    ============================================================
   */
 
   const [quantity, setQuantity] = useState(1);
 
   /*
-  ============================================================
-  ADDED STATE
-  ============================================================
+    ============================================================
+    ADDED STATE
+    ============================================================
   */
 
   const [added, setAdded] = useState(false);
 
   /*
-  ============================================================
-  CURRENT VARIANT
-  ============================================================
+    ============================================================
+    CURRENT VARIANT
+    ============================================================
   */
 
   const selectedVariant =
@@ -106,9 +103,9 @@ export default function ProductCard({ product }) {
     ) || variants[0];
 
   /*
-  ============================================================
-  WISHLIST
-  ============================================================
+    ============================================================
+    WISHLIST
+    ============================================================
   */
 
   const favorite = useMemo(() => {
@@ -125,9 +122,9 @@ export default function ProductCard({ product }) {
   ]);
 
   /*
-  ============================================================
-  WISHLIST HANDLER
-  ============================================================
+    ============================================================
+    WISHLIST HANDLER
+    ============================================================
   */
 
   function handleWishlist(event) {
@@ -145,9 +142,9 @@ export default function ProductCard({ product }) {
   }
 
   /*
-  ============================================================
-  CHOOSE WEIGHT
-  ============================================================
+    ============================================================
+    CHOOSE WEIGHT
+    ============================================================
   */
 
   function chooseVariant(variant) {
@@ -157,9 +154,9 @@ export default function ProductCard({ product }) {
   }
 
   /*
-  ============================================================
-  QUANTITY
-  ============================================================
+    ============================================================
+    QUANTITY
+    ============================================================
   */
 
   function decreaseQuantity() {
@@ -176,9 +173,9 @@ export default function ProductCard({ product }) {
   }
 
   /*
-  ============================================================
-  ADD TO CART
-  ============================================================
+    ============================================================
+    ADD TO CART
+    ============================================================
   */
 
   function handleAddToCart(event) {
@@ -205,8 +202,6 @@ export default function ProductCard({ product }) {
       weightGrams: Number(
         selectedVariant.weightGrams
       ),
-
-      // لا نرسل packageType نهائيًا
     });
 
     setAdded(true);
@@ -241,6 +236,7 @@ export default function ProductCard({ product }) {
         <Link
           to={`/products/${product.id}`}
           className="product-title-link"
+          aria-label={`عرض تفاصيل ${product.name}`}
         >
           <div className="product-image">
             <span>
@@ -248,7 +244,6 @@ export default function ProductCard({ product }) {
             </span>
           </div>
         </Link>
-
       </div>
 
       {/* ======================================================
@@ -257,7 +252,7 @@ export default function ProductCard({ product }) {
 
       <div className="product-info">
 
-        <small className="product-category">
+        <small>
           {product.category}
         </small>
 
@@ -298,9 +293,7 @@ export default function ProductCard({ product }) {
                         : "card-weight-option"
                     }
                     onClick={() =>
-                      chooseVariant(
-                        variant
-                      )
+                      chooseVariant(variant)
                     }
                   >
                     {variant.weight}
@@ -309,25 +302,19 @@ export default function ProductCard({ product }) {
               })}
 
             </div>
-
           </div>
         )}
 
         {/* ==================================================
-            PRICE + DETAILS
-            DETAILS IS LEFT OF PRICE
+            PRICE + PRODUCT DETAILS
             ================================================== */}
 
         <div className="card-price-details-row">
 
-          <Link
-            to={`/products/${product.id}`}
-            className="card-details-link"
-          >
-            تفاصيل المنتج
-          </Link>
+          {/* PRICE */}
 
           <div className="card-price">
+
             {selectedVariant
               ? `${(
                   Number(
@@ -335,7 +322,20 @@ export default function ProductCard({ product }) {
                   ) * quantity
                 ).toFixed(2)} ج.م`
               : "—"}
+
           </div>
+
+          {/* PRODUCT DETAILS */}
+
+          <Link
+            to={`/products/${product.id}`}
+            className="card-details-link"
+          >
+            تفاصيل المنتج
+            <span className="card-details-arrow">
+              ←
+            </span>
+          </Link>
 
         </div>
 
@@ -395,7 +395,6 @@ export default function ProductCard({ product }) {
         </button>
 
       </div>
-
     </article>
   );
 }

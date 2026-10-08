@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
+import ProductCard from "../components/ProductCard";
+
 import { useCart } from "../context/CartContext";
+
 import {
   findVariant,
   getProductGroupByParam,
+  groupProducts,
 } from "../utils/productGroups";
 
 import { getProductDetails } from "../data/productDetails";
@@ -39,21 +43,51 @@ export default function ProductDetails() {
 
   /*
     ============================================================
+    RELATED PRODUCTS
+    ============================================================
+  */
+
+  const relatedProducts = useMemo(() => {
+    if (!group) {
+      return [];
+    }
+
+    const allProducts = groupProducts();
+
+    return allProducts
+      .filter(
+        (product) =>
+          product.id !== group.id
+      )
+      .filter(
+        (product) =>
+          product.category === group.category
+      )
+      .slice(0, 4);
+  }, [group]);
+
+  /*
+    ============================================================
     CUSTOMER VARIANTS
     ============================================================
   */
 
   const customerVariants = useMemo(() => {
-    if (!group?.customerVariants?.length) {
-      return [];
-    }
+  if (!group) {
+    return [];
+  }
 
-    return [...group.customerVariants].sort(
-      (a, b) =>
-        Number(a.weightGrams) -
-        Number(b.weightGrams)
-    );
-  }, [group]);
+  const variants =
+    group.customerVariants?.length
+      ? group.customerVariants
+      : group.variants || [];
+
+  return [...variants].sort(
+    (a, b) =>
+      Number(a.weightGrams) -
+      Number(b.weightGrams)
+  );
+}, [group]);
 
   /*
     ============================================================
@@ -111,13 +145,20 @@ export default function ProductDetails() {
     ============================================================
   */
 
-  const selectedVariant = group
-    ? findVariant(
-        customerVariants,
-        selectedWeight
-      )
-    : null;
+ const selectedVariant = useMemo(() => {
+  if (!group || !customerVariants.length) {
+    return null;
+  }
 
+  const targetWeight = Number(selectedWeight);
+
+  const matchedVariant = customerVariants.find(
+    (variant) =>
+      Number(variant.weightGrams) === targetWeight
+  );
+
+  return matchedVariant || customerVariants[0] || null;
+}, [group, customerVariants, selectedWeight]);
   /*
     ============================================================
     CHOOSE WEIGHT
@@ -582,7 +623,7 @@ export default function ProductDetails() {
             {/* ==================================================
                 ADD TO CART
                 ==================================================
-                
+
                 مهم:
                 الزر أصبح مباشرة بعد الكمية.
                 ================================================== */}
@@ -605,7 +646,7 @@ export default function ProductDetails() {
             {/* ==================================================
                 ORDER INFORMATION
                 ==================================================
-                
+
                 التوصيل وتجهيز الطلب والاستبدال
                 أصبحوا بعد زر أضف للسلة.
                 ================================================== */}
@@ -1042,6 +1083,49 @@ export default function ProductDetails() {
           </div>
 
         </section>
+
+        {/* ======================================================
+            RELATED PRODUCTS
+            ====================================================== */}
+
+        {relatedProducts.length > 0 && (
+          <section className="related-products-section">
+
+            <div className="related-products-heading">
+
+              <div>
+
+                <span className="section-eyebrow">
+                  BERNA FOODS
+                </span>
+
+                <h2>
+                  منتجات قد تعجبك
+                </h2>
+
+                <p>
+                  منتجات أخرى قد تناسب اختيارك.
+                </p>
+
+              </div>
+
+            </div>
+
+            <div className="related-products-grid">
+
+              {relatedProducts.map(
+                (product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                  />
+                )
+              )}
+
+            </div>
+
+          </section>
+        )}
 
         {/* ======================================================
             BACK TO PRODUCTS

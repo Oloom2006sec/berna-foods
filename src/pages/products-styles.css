@@ -54,30 +54,22 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-
   padding: 18px;
-
   border: 1px solid #eee3cf;
   border-radius: 18px;
-
   background: #fff;
-
   margin-bottom: 20px;
 }
 
 .search-box {
   width: min(330px, 100%);
-
   display: flex;
   align-items: center;
   gap: 10px;
-
   height: 46px;
   padding: 0 14px;
-
   border: 1px solid #e9ddc9;
   border-radius: 12px;
-
   background: #fff;
 }
 
@@ -89,9 +81,7 @@
   width: 100%;
   border: 0;
   outline: 0;
-
   background: transparent;
-
   font-family: inherit;
   font-size: 13px;
   color: #292723;
@@ -111,19 +101,13 @@
 .category-filters button {
   height: 38px;
   padding: 0 16px;
-
   border: 1px solid #e7dac5;
   border-radius: 10px;
-
   background: #fff;
-
   color: #6d665d;
-
   font-family: inherit;
   font-size: 12px;
-
   cursor: pointer;
-
   transition:
     background 0.2s ease,
     color 0.2s ease,
@@ -147,7 +131,6 @@
 
 .products-result-info {
   margin-bottom: 16px;
-
   color: #9a9288;
   font-size: 11px;
 }
@@ -172,19 +155,13 @@
 
 .product-card {
   min-width: 0;
-
   display: flex;
   flex-direction: column;
-
   border: 1px solid #eadfce;
   border-radius: 16px;
-
   background: #fff;
-
   overflow: hidden;
-
   box-shadow: 0 8px 24px rgba(82, 66, 35, 0.04);
-
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
@@ -201,19 +178,15 @@
 
 .product-image-wrapper {
   position: relative;
-
   padding: 10px;
 }
 
 .product-image {
   height: 210px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 12px;
-
   background:
     radial-gradient(
       circle at center,
@@ -221,14 +194,12 @@
       #fff1c3 45%,
       #ffedb8 100%
     );
-
   overflow: hidden;
 }
 
 .product-image span {
   font-size: 68px;
   line-height: 1;
-
   filter: drop-shadow(
     0 10px 10px rgba(120, 80, 0, 0.08)
   );
@@ -238,27 +209,18 @@
   position: absolute;
   top: 18px;
   right: 18px;
-
   z-index: 2;
-
   width: 34px;
   height: 34px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border: 1px solid #eadfce;
   border-radius: 50%;
-
   background: rgba(255, 255, 255, 0.95);
-
   color: #9b948a;
-
   font-size: 17px;
-
   cursor: pointer;
-
   transition: 0.2s ease;
 }
 
@@ -275,39 +237,29 @@
 
 .product-info {
   flex: 1;
-
   display: flex;
   flex-direction: column;
-
   padding: 4px 16px 16px;
 }
 
 .product-category {
   margin-bottom: 7px;
-
   color: #aaa196;
-
   font-size: 9px;
 }
 
 .product-info h3 {
   margin: 0;
-
   color: #302d29;
-
   font-size: 17px;
   font-weight: 800;
-
   line-height: 1.4;
 }
 
 .product-description {
   min-height: 34px;
-
   margin: 7px 0 14px;
-
   color: #91897f;
-
   font-size: 10px;
   line-height: 1.7;
 }
@@ -318,18 +270,14 @@
 
 .card-variant-selector {
   border-top: 1px solid #f0e8dc;
-
   padding-top: 12px;
 }
 
 .card-variant-selector strong,
 .card-quantity-row strong {
   display: block;
-
   margin-bottom: 8px;
-
   color: #4b463f;
-
   font-size: 10px;
   font-weight: 700;
 }
@@ -339,28 +287,20 @@
   align-items: center;
   justify-content: flex-end;
   gap: 5px;
-
   flex-wrap: wrap;
 }
 
 .card-weight-option {
   min-width: 46px;
   height: 30px;
-
   padding: 0 9px;
-
   border: 1px solid #e8dfd2;
   border-radius: 7px;
-
   background: #fff;
-
   color: #746c62;
-
   font-family: inherit;
   font-size: 9px;
-
   cursor: pointer;
-
   transition: 0.2s ease;
 }
 
@@ -371,56 +311,98 @@
 .card-weight-option.selected {
   background: #dfa000;
   border-color: #dfa000;
-
   color: #fff;
-
   box-shadow:
     0 4px 10px rgba(223, 160, 0, 0.15);
 }
 
 /* =========================================================
-   PRICE + DETAILS
-   DETAILS = LEFT
-   PRICE = RIGHT
+   PRICE + PRODUCT DETAILS
    ========================================================= */
 
 .card-price-details-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
+  gap: 12px;
   margin-top: 10px;
-
   min-height: 38px;
+
+  /*
+    مهم:
+    نخلي اتجاه الـ flex من الشمال لليمين
+    حتى تكون تفاصيل المنتج يسار
+    والسعر يمين.
+  */
+  direction: ltr;
 }
+
+/* =========================================================
+   PRODUCT DETAILS BUTTON
+   زر صغير بنفس Style زر أضف للسلة
+   ========================================================= */
 
 .card-details-link {
   order: 1;
 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: fit-content;
+  height: 28px;
+
+  padding: 0 10px;
+
+  border: 1px solid #dfa000;
+  border-radius: 7px;
+
+  background: #fff;
   color: #c58a00;
 
-  font-size: 10px;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 800;
 
+  line-height: 1;
   text-decoration: none;
-
   white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .card-details-link:hover {
-  text-decoration: underline;
+  background: #dfa000;
+  border-color: #dfa000;
+  color: #fff;
+
+  transform: translateY(-1px);
 }
+/* =========================================================
+   PRICE
+   ناحية اليمين
+   ========================================================= */
 
 .card-price {
   order: 2;
 
-  color: #d59000;
+  margin: 0;
 
+  color: #d59000;
   font-size: 16px;
   font-weight: 800;
 
   white-space: nowrap;
-}
 
+  direction: rtl;
+  text-align: right;
+}
 /* =========================================================
    QUANTITY
    ========================================================= */
@@ -429,7 +411,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   margin-top: 8px;
 }
 
@@ -440,28 +421,20 @@
 .card-quantity-controls {
   display: flex;
   align-items: center;
-
   height: 32px;
-
   border: 1px solid #e7dccd;
   border-radius: 8px;
-
   overflow: hidden;
 }
 
 .card-quantity-controls button {
   width: 32px;
   height: 32px;
-
   border: 0;
-
   background: #fff;
-
   color: #c88b00;
-
   font-family: inherit;
   font-size: 14px;
-
   cursor: pointer;
 }
 
@@ -471,11 +444,8 @@
 
 .card-quantity-controls span {
   min-width: 28px;
-
   text-align: center;
-
   color: #4d4841;
-
   font-size: 10px;
 }
 
@@ -486,25 +456,17 @@
 .card-add-to-cart {
   width: 100%;
   height: 42px;
-
   margin-top: 10px;
-
   border: 0;
   border-radius: 8px;
-
   background: #dfa000;
-
   color: #fff;
-
   font-family: inherit;
   font-size: 11px;
   font-weight: 700;
-
   cursor: pointer;
-
   box-shadow:
     0 7px 15px rgba(223, 160, 0, 0.16);
-
   transition:
     background 0.2s ease,
     transform 0.2s ease;
@@ -535,12 +497,9 @@
 
 .no-products {
   padding: 80px 20px;
-
   text-align: center;
-
   border: 1px solid #eadfce;
   border-radius: 18px;
-
   background: #fff;
 }
 
@@ -550,13 +509,11 @@
 
 .no-products h2 {
   margin: 15px 0 8px;
-
   font-size: 24px;
 }
 
 .no-products p {
   margin: 0;
-
   color: #999;
 }
 
@@ -608,6 +565,7 @@
     font-size: 38px;
   }
 }
+
 /* =========================================================
    WISHLIST
    نفس Grid وشكل كروت المنتجات
@@ -645,7 +603,6 @@
   }
 }
 
-
 /* =========================================================
    WISHLIST HEADER
    ========================================================= */
@@ -666,7 +623,6 @@
   margin: 0;
 }
 
-
 /* =========================================================
    CLEAR WISHLIST
    ========================================================= */
@@ -684,7 +640,6 @@
 .clear-wishlist:hover {
   background: #fff7df;
 }
-
 
 /* =========================================================
    EMPTY WISHLIST

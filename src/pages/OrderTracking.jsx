@@ -316,15 +316,9 @@ export default function OrderTracking() {
     =========================
   */
 
-  function getVariantText(item) {
-    return [
-      item.weight,
-      item.packageType,
-    ]
-      .filter(Boolean)
-      .join(" — ");
-  }
-
+function getVariantText(item) {
+  return item.weight || "";
+}
   /*
     =========================
     Key للمنتجات

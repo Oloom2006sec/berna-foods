@@ -1456,3 +1456,100 @@
   }
 
 }
+/* ============================================================
+   RELATED PRODUCTS
+   ============================================================ */
+
+.related-products-section {
+  margin-top: 110px;
+  padding-top: 70px;
+  border-top: 1px solid #eee8dc;
+}
+
+.related-products-heading {
+  margin-bottom: 34px;
+}
+
+.related-products-heading .section-eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.related-products-heading h2 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.3;
+  font-weight: 800;
+  color: #2f2b27;
+}
+
+.related-products-heading p {
+  margin: 10px 0 0;
+  color: #8c8378;
+  font-size: 14px;
+}
+
+.related-products-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+/*
+   Make all recommendation cards equal height
+*/
+
+.related-products-grid .product-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.related-products-grid .product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.related-products-grid .card-add-to-cart {
+  margin-top: auto;
+}
+
+/* ============================================================
+   TABLET
+   ============================================================ */
+
+@media (max-width: 1100px) {
+  .related-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 640px) {
+  .related-products-section {
+    margin-top: 80px;
+    padding-top: 50px;
+  }
+
+  .related-products-heading {
+    margin-bottom: 24px;
+  }
+
+  .related-products-heading h2 {
+    font-size: 27px;
+  }
+
+  .related-products-heading p {
+    font-size: 13px;
+  }
+
+  .related-products-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
