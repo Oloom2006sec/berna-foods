@@ -356,6 +356,15 @@ a {
   font-size: 82px;
   margin-bottom: 12px;
 }
+.hero-product-image img {
+  width: 170px;
+  height: 195px;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  margin: auto;
+  mix-blend-mode: multiply;
+}
 
 .hero-product-card > span {
   font-size: 10px;
@@ -385,7 +394,15 @@ a {
   gap: 9px;
   font-size: 22px;
 }
-
+.hero-floating-card img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  flex-shrink: 0;
+  mix-blend-mode: multiply;
+}
 .hero-floating-card strong,
 .hero-floating-card small {
   display: block;
@@ -2559,6 +2576,10 @@ a {
   .hero-product-image {
     font-size: 70px;
   }
+  .hero-product-image img {
+  width: 120px;
+  height: 145px;
+}
 
   .hero-card-top {
     right: 0;

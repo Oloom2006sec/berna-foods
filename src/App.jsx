@@ -84,8 +84,11 @@ function Home() {
             <div className="hero-product-card">
 
               <div className="hero-product-image">
-                🍯
-              </div>
+  <img
+    src="/images/products/berna_honey_mountain_herbs_FINAL.webp"
+    alt="عسل بيرنا"
+  />
+</div>
 
               <span>
                 BERNA
@@ -102,36 +105,28 @@ function Home() {
             </div>
 
             <div className="hero-floating-card hero-card-top">
+  <img
+    src="/images/products/berna_honey_almawleh_jar.webp"
+    alt="عسل الموالح"
+  />
 
-              🍊
-
-              <div>
-                <strong>
-                  عسل الموالح
-                </strong>
-
-                <small>
-                  الأكثر طلباً
-                </small>
-              </div>
-
-            </div>
+  <div>
+    <strong>عسل الموالح</strong>
+    <small>الأكثر طلباً</small>
+  </div>
+</div>
 
             <div className="hero-floating-card hero-card-bottom">
+  <img
+    src="/images/products/berna_honey_nuts_jar.webp"
+    alt="عسل بالمكسرات"
+  />
 
-              🥜
-
-              <div>
-                <strong>
-                  بالمكسرات
-                </strong>
-
-                <small>
-                  اختيار مميز
-                </small>
-              </div>
-
-            </div>
+  <div>
+    <strong>بالمكسرات</strong>
+    <small>اختيار مميز</small>
+  </div>
+</div>
 
           </div>
 
