@@ -188,23 +188,29 @@ export default function ProductCard({ product }) {
     }
 
     addToCart({
-      ...selectedVariant,
+  ...selectedVariant,
 
-      quantity,
+  quantity,
 
-      sku: selectedVariant.sku,
+  sku: selectedVariant.sku,
 
-      price: Number(
-        selectedVariant.price
-      ),
+  price: Number(
+    selectedVariant.price
+  ),
 
-      weight: selectedVariant.weight,
+  weight: selectedVariant.weight,
 
-      weightGrams: Number(
-        selectedVariant.weightGrams
-      ),
-    });
+  weightGrams: Number(
+    selectedVariant.weightGrams
+  ),
 
+  // IMPORTANT:
+  // Keep the real product image in the cart
+  image: product.image || "",
+
+  // Keep fallback icon as well
+  icon: product.icon || "🍯",
+});
     setAdded(true);
   }
 
