@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
+import { useMemo } from "react";
+
 import ProductCard from "../components/ProductCard";
 import { useWishlist } from "../context/WishlistContext";
+
+import { groupProducts } from "../utils/productGroups";
 
 export default function Wishlist() {
   const {
@@ -8,6 +12,52 @@ export default function Wishlist() {
     wishlistCount,
     clearWishlist,
   } = useWishlist();
+
+  /*
+    ============================================================
+    RESTORE FULL PRODUCT DATA
+    ============================================================
+    عناصر المفضلة المخزنة تحتوي على بيانات مختصرة فقط.
+    هنا نرجع للـ Product Groups الأصلية حتى يحصل ProductCard
+    على customerVariants + prices + weights + image.
+  */
+
+  const wishlistProducts = useMemo(() => {
+    const allProducts = groupProducts();
+
+    return wishlist
+      .map((item) => {
+        const originalProduct = allProducts.find(
+          (product) =>
+            product.id === item.groupId ||
+            product.id === item.id ||
+            product.name === item.name
+        );
+
+        if (!originalProduct) {
+          return item;
+        }
+
+        return {
+          ...originalProduct,
+
+          /*
+            نحافظ على بيانات المفضلة الحالية
+            ونضمن وجود الصورة.
+          */
+          image:
+            originalProduct.image ||
+            item.image ||
+            "",
+
+          icon:
+            originalProduct.icon ||
+            item.icon ||
+            "🍯",
+        };
+      })
+      .filter(Boolean);
+  }, [wishlist]);
 
   if (!wishlist.length) {
     return (
@@ -54,6 +104,7 @@ export default function Wishlist() {
         <header className="wishlist-header">
 
           <div>
+
             <span className="eyebrow">
               BERNA FOODS
             </span>
@@ -66,6 +117,7 @@ export default function Wishlist() {
               عندك {wishlistCount} منتج
               في المفضلة.
             </p>
+
           </div>
 
           <button
@@ -82,7 +134,7 @@ export default function Wishlist() {
 
         <div className="products-grid all-products-grid wishlist-products-grid">
 
-          {wishlist.map((product) => (
+          {wishlistProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
