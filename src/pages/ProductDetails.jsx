@@ -18,6 +18,11 @@ import "../variant-styles.css";
 export default function ProductDetails() {
   const { id } = useParams();
 
+  // Return to the top whenever the customer opens a different product.
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [id]);
+
   const group = useMemo(
     () => getProductGroupByParam(id),
     [id]
