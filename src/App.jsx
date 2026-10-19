@@ -445,7 +445,7 @@ function Home() {
       {/* ================= WHATSAPP ================= */}
 
       <a
-        href="https://wa.me/201029227716"
+        href="https://wa.me/201029277716"
         className="whatsapp"
         target="_blank"
         rel="noreferrer"
