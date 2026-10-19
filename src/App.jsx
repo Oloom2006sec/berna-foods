@@ -445,7 +445,7 @@ function Home() {
       {/* ================= WHATSAPP ================= */}
 
       <a
-        href="https://wa.me/201029222477"
+        href="https://wa.me/201029227716"
         className="whatsapp"
         target="_blank"
         rel="noreferrer"
@@ -517,33 +517,86 @@ function Home() {
 
           </div>
 
-          <div className="footer-links">
+          
+<div className="footer-links">
 
-            <h3>
-              تواصل معنا
-            </h3>
+  <h3>
+    تواصل معنا
+  </h3>
 
-            <a
-              href="https://wa.me/201029222477"
-              target="_blank"
-              rel="noreferrer"
-            >
-              WhatsApp
-            </a>
+  <a
+    href="https://wa.me/201029277716"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    WhatsApp
+  </a>
 
-            <a href="#">
-              Facebook
-            </a>
+  <a
+    href="https://www.facebook.com/profile.php?id=61593357845203"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="تابع بيرنا على فيسبوك"
+  >
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      style={{ verticalAlign: "middle", marginLeft: "8px" }}
+    >
+      <path d="M13.5 21v-8.2h2.8l.4-3.2h-3.2v-2c0-.9.3-1.6 1.6-1.6h1.7V3.1c-.8-.1-1.6-.2-2.5-.2-2.5 0-4.2 1.5-4.2 4.3v2.4H7.3v3.2h2.8V21h3.4Z" />
+    </svg>
+    Facebook
+  </a>
 
-            <a href="#">
-              Instagram
-            </a>
+  <a
+    href="https://www.instagram.com/bernafoods.official/"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="تابع بيرنا على إنستجرام"
+  >
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      style={{ verticalAlign: "middle", marginLeft: "8px" }}
+    >
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+    </svg>
+    Instagram
+  </a>
 
-            <a href="#">
-              TikTok
-            </a>
+  <a
+    href="https://www.tiktok.com/@berna.foods"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="تابع بيرنا على تيك توك"
+  >
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      style={{ verticalAlign: "middle", marginLeft: "8px" }}
+    >
+      <path d="M19.6 7.2a6.6 6.6 0 0 1-4-1.3v8.3a6.1 6.1 0 1 1-5.3-6.1v3.4a2.8 2.8 0 1 0 1.9 2.7V2.5h3.4c.2 2.1 1.7 3.8 4 4.1v.6Z" />
+    </svg>
+    TikTok
+  </a>
 
-          </div>
+</div>
+
 
         </div>
 
