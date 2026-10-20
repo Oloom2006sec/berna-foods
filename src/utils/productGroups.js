@@ -260,18 +260,42 @@ export function groupProducts(source = products) {
   ============================================================
 */
 
+
+const PRODUCT_SLUGS = {
+  "citrus-honey": "عسل الموالح",
+  "clover-honey": "عسل البرسيم",
+  "black-seed-honey": "عسل حبة البركة",
+  "honey-with-nuts": "عسل بالمكسرات",
+  "black-honey": "عسل أسود",
+  "egyptian-sidr-honey": "عسل سدر مصري",
+  "marjoram-honey": "عسل بردقوش",
+  "mountain-herbs-honey": "عسل أعشاب جبلية",
+  "wild-herbs-honey": "عسل أعشاب برية",
+  "olive-oil": "زيت الزيتون",
+  "pomegranate-molasses": "دبس الرمان",
+  "apple-cider-vinegar": "خل التفاح",
+  "soy-sauce": "صويا صوص",
+  "tahini": "طحينة",
+};
+
 export function getProductGroupByParam(param) {
-  const decoded = decodeURIComponent(
-    param || ""
-  );
+  let decoded = param || "";
+
+  try {
+    decoded = decodeURIComponent(decoded);
+  } catch {
+    // نحتفظ بالقيمة الأصلية إذا كان الرابط غير صالح
+  }
+
+  const productName = PRODUCT_SLUGS[decoded] || decoded;
 
   return (
     groupProducts().find(
-      (group) =>
-        group.name === decoded
+      (group) => group.name === productName
     ) || null
   );
 }
+
 
 
 /*

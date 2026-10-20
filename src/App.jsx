@@ -658,6 +658,15 @@ export default function App() {
               </>
             }
           />
+          <Route
+            path="/p/:id"
+            element={
+              <>
+                <Header />
+                <ProductDetails />
+              </>
+            }
+          />
 
           <Route
             path="/wishlist"
