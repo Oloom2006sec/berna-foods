@@ -2036,7 +2036,7 @@ ${
                 <div className="form-field">
 
                   <label>
-                    رقم الموبايل الثاني (اختياري)
+                    رقم الموبايل الثاني
                   </label>
 
                   <input
