@@ -1,21 +1,51 @@
 import "./payment-instructions.css";
 
-export default function PaymentInstructions({ amountLabel }) {
+export default function PaymentInstructions({
+  amountLabel,
+  orderNumber,
+  depositPercent = 50,
+}) {
+  const remainingPercent = 100 - depositPercent;
+
   return (
     <section className="payment-instructions" aria-label="تعليمات الدفع">
+      <h3>خطوات الدفع</h3>
+
       {amountLabel && (
         <p className="payment-instructions-amount">
-          جدية الحجز المطلوبة: <strong>{amountLabel}</strong>
+          جدية الحجز ({depositPercent}% من إجمالي الطلب شامل الشحن):{" "}
+          <strong>{amountLabel}</strong>
         </p>
       )}
 
-      <p className="payment-instructions-copy">
-        ادفع عبر إنستاباي أو فودافون كاش على الرقم:
-      </p>
+      <ol className="payment-steps">
+        <li>
+          اختر إنستاباي أو فودافون كاش، وحوّل {depositPercent}% من إجمالي
+          الطلب شامل الشحن باستخدام الرقم أو الباركود المناسب.
+        </li>
+        <li>
+          بعد تسجيل الطلب والتحويل، افتح تتبع الطلب وارفع صورة إيصال التحويل.
+          {orderNumber && (
+            <>
+              {" "}
+              <a href={`/track-order?order=${encodeURIComponent(orderNumber)}`}>
+                تتبع الطلب ورفع الإيصال
+              </a>
+            </>
+          )}
+        </li>
+        <li>
+          سنراجع الإيصال ونطابقه مع المبلغ الوارد. إذا تم التأكد منه سنؤكد
+          الطلب فورًا، وإذا ظهرت مشكلة سنتواصل معك لإعادة التحويل.
+        </li>
+      </ol>
 
-      <a className="payment-instructions-phone" href="tel:+201061004311" dir="ltr">
-        +201061004311
-      </a>
+      <div className="payment-instructions-copy">
+        <span>رقم التحويل لفودافون كاش:</span>
+        <a className="payment-instructions-phone" href="tel:+201061004311" dir="ltr">
+          +201061004311
+        </a>
+      </div>
 
       <div className="payment-qr-grid">
         <figure className="payment-qr-card">
@@ -36,8 +66,7 @@ export default function PaymentInstructions({ amountLabel }) {
       </div>
 
       <p className="payment-instructions-note">
-        امسح باركود وسيلة الدفع المناسبة، ثم أرسل إيصال التحويل. يُدفع باقي
-        المبلغ عند استلام الطلب.
+        يُدفع المتبقي {remainingPercent}% عند استلام الطلب.
       </p>
     </section>
   );

@@ -7,6 +7,12 @@
   text-align: center;
 }
 
+.payment-instructions h3 {
+  margin: 0 0 12px;
+  color: #3c352b;
+  font-size: 16px;
+}
+
 .payment-instructions-amount,
 .payment-instructions-copy,
 .payment-instructions-note {
@@ -14,6 +20,24 @@
   color: #665d50;
   font-size: 13px;
   line-height: 1.8;
+}
+
+.payment-steps {
+  margin: 0 0 18px;
+  padding: 0 24px 0 0;
+  color: #514a40;
+  text-align: right;
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.payment-steps li + li {
+  margin-top: 8px;
+}
+
+.payment-steps a {
+  color: #245444;
+  font-weight: 800;
 }
 
 .payment-instructions-amount {
@@ -26,7 +50,7 @@
 
 .payment-instructions-phone {
   display: inline-block;
-  margin: 3px 0 15px;
+  margin: 3px 8px 15px;
   color: #245444;
   font-size: 20px;
   font-weight: 800;
