@@ -163,6 +163,9 @@ export async function createOrder(orderData) {
         customer_phone:
           orderData.customer?.phone || "",
 
+        customer_phone_secondary:
+          orderData.customer?.phoneSecondary || "",
+
         governorate:
           orderData.customer?.governorate || "",
 
@@ -198,7 +201,7 @@ export async function createOrder(orderData) {
 
         /*
           ==============================
-          المقدم والمتبقي
+          جدية الحجز والمتبقي
           ==============================
         */
 
@@ -221,7 +224,7 @@ export async function createOrder(orderData) {
           "deposit_required",
 
         payment_method:
-          "دفع 20% مقدم + 80% عند الاستلام",
+          "جدية حجز 20% + 80% عند الاستلام",
 
         /*
           ==============================
@@ -397,6 +400,11 @@ export async function getOrder(orderNumber) {
             localOrder.customer_phone ||
             "",
 
+          customer_phone_secondary:
+            localOrder.customer?.phoneSecondary ||
+            localOrder.customer_phone_secondary ||
+            "",
+
           governorate:
             localOrder.customer?.governorate ||
             localOrder.governorate ||
@@ -554,7 +562,7 @@ export async function updateOrderStatus(
 
 /*
   ==========================================
-  تحديث حالة المقدم
+  تحديث حالة جدية الحجز
   Admin
   ==========================================
 */

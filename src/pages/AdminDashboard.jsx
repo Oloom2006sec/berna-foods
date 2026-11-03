@@ -411,7 +411,7 @@ export default function AdminDashboard() {
 
             <div>
               <span>
-                المقدمات المحصلة
+                إجمالي جدية الحجز المحصلة
               </span>
 
               <strong>

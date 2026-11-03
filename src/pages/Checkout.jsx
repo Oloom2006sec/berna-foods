@@ -20,7 +20,7 @@ import { STORE_CONFIG } from "../config/store";
 
 import { egyptLocations } from "../data/egyptLocations";
 
-import { createOrder } from "../services/orderService";
+import PaymentInstructions from "../components/PaymentInstructions";
 
 
 
@@ -61,9 +61,8 @@ export default function Checkout() {
   const [form, setForm] = useState({
 
     name: "",
-
     phone: "",
-
+    phoneSecondary: "",
     governorate: "",
 
     area: "",
@@ -1193,6 +1192,10 @@ ${submittedOrder.customer.name}
 
 ${submittedOrder.customer.phone}
 
+رقم موبايل بديل:
+
+${submittedOrder.customer.phoneSecondary}
+
 
 
 المحافظة:
@@ -1287,7 +1290,7 @@ ${formatPrice(
 
 
 
-المقدم المطلوب 20%:
+جدية الحجز المطلوبة 20%:
 
 ${formatPrice(
 
@@ -1309,7 +1312,7 @@ ${formatPrice(
 
 طريقة الدفع:
 
-تحويل 20% مقدم + 80% عند الاستلام
+تحويل جدية حجز 20% + 80% عند الاستلام
 
 
 
@@ -1325,7 +1328,7 @@ ${
 
 
 
-برجاء إرسال إيصال تحويل المقدم بعد إتمام التحويل.
+برجاء إرسال إيصال تحويل جدية الحجز بعد إتمام التحويل.
 
 
 
@@ -1425,7 +1428,7 @@ ${
 
               الخطوة التالية هي تحويل قيمة
 
-              المقدم وإرسال إيصال التحويل.
+              جدية الحجز وإرسال إيصال التحويل.
 
             </p>
 
@@ -1459,7 +1462,7 @@ ${
 
               <span>●</span>
 
-              في انتظار دفع المقدم
+              في انتظار دفع جدية الحجز
 
             </div>
 
@@ -1543,7 +1546,7 @@ ${
 
                   <span>
 
-                    المقدم المطلوب 20%
+                    جدية الحجز المطلوبة 20%
 
                   </span>
 
@@ -1607,11 +1610,15 @@ ${
 
                   </strong>{" "}
 
-                  تحويل 20% مقدم، ثم دفع
-
+                  تحويل جدية حجز 20%، ثم دفع
                   الـ80% المتبقية عند استلام الطلب.
-
                 </div>
+
+                <PaymentInstructions
+                  amountLabel={`${formatPrice(
+                    submittedOrder.depositAmount
+                  )} ${STORE_CONFIG.currency}`}
+                />
 
 
 
@@ -1991,7 +1998,7 @@ ${
 
                   <label>
 
-                    رقم الموبايل *
+                    رقم الموبايل الأول *
 
                   </label>
 
@@ -2021,11 +2028,24 @@ ${
 
                   />
 
-
-
                 </div>
 
+                <div className="form-field">
 
+                  <label>
+                    رقم الموبايل الثاني *
+                  </label>
+
+                  <input
+                    type="tel"
+                    name="phoneSecondary"
+                    value={form.phoneSecondary}
+                    onChange={handleChange}
+                    placeholder="01xxxxxxxxx"
+                    required
+                  />
+
+                </div>
 
               </div>
 
@@ -2719,7 +2739,7 @@ ${
 
                   <p>
 
-                    دفع مقدم 20% ثم 80% عند الاستلام.
+                    جدية حجز 20% ثم 80% عند الاستلام.
 
                   </p>
 
@@ -2749,7 +2769,7 @@ ${
 
                   <strong>
 
-                    20% مقدم + 80% عند الاستلام
+                    جدية حجز 20% + 80% عند الاستلام
 
                   </strong>
 
@@ -2757,8 +2777,7 @@ ${
 
                   <small>
 
-                    يتم تحويل المقدم وإرسال
-
+                    يتم تحويل جدية الحجز وإرسال
                     إيصال التحويل لمراجعة الإدارة.
 
                   </small>
@@ -2777,7 +2796,13 @@ ${
 
               </div>
 
-
+              <PaymentInstructions
+                amountLabel={
+                  depositAmount === null
+                    ? ""
+                    : `${formatPrice(depositAmount)} ${STORE_CONFIG.currency}`
+                }
+              />
 
             </section>
 
@@ -3407,7 +3432,7 @@ return (
 
                   <span>
 
-                    المقدم المطلوب 20%
+                    جدية الحجز المطلوبة 20%
 
                   </span>
 
@@ -3495,8 +3520,7 @@ return (
 
                 </strong>{" "}
 
-                تحويل 20% مقدم،
-
+                تحويل جدية حجز 20%،
                 والباقي 80% عند الاستلام.
 
 
