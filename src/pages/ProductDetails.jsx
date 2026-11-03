@@ -12,21 +12,21 @@ import {
 } from "../utils/productGroups";
 
 import { getProductDetails } from "../data/productDetails";
+import { getPromotionPricing } from "../utils/promotionPricing";
+import { useStoreSettings } from "../context/StoreSettingsContext";
 
 import "../variant-styles.css";
 
 export default function ProductDetails() {
   const { id } = useParams();
+  useStoreSettings();
 
   // Return to the top whenever the customer opens a different product.
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [id]);
 
-  const group = useMemo(
-    () => getProductGroupByParam(id),
-    [id]
-  );
+  const group = getProductGroupByParam(id);
 
   const { addToCart } = useCart();
 
@@ -40,11 +40,7 @@ export default function ProductDetails() {
     ============================================================
   */
 
-  const details = useMemo(() => {
-    if (!group) return null;
-
-    return getProductDetails(group.name);
-  }, [group]);
+  const details = group ? getProductDetails(group.name) : null;
 
   /*
     ============================================================
@@ -52,7 +48,7 @@ export default function ProductDetails() {
     ============================================================
   */
 
-  const relatedProducts = useMemo(() => {
+  const relatedProducts = (() => {
     if (!group) {
       return [];
     }
@@ -69,7 +65,7 @@ export default function ProductDetails() {
           product.category === group.category
       )
       .slice(0, 4);
-  }, [group]);
+  })();
 
   /*
     ============================================================
@@ -164,6 +160,29 @@ export default function ProductDetails() {
 
   return matchedVariant || customerVariants[0] || null;
 }, [group, customerVariants, selectedWeight]);
+
+  const maxVariantWeight = customerVariants.reduce(
+    (maxWeight, variant) =>
+      Math.max(maxWeight, Number(variant.weightGrams) || 0),
+    0
+  );
+  const selectedImageScale =
+    selectedVariant && maxVariantWeight > 0
+      ? Math.max(
+          0.65,
+          Math.cbrt(
+            Number(selectedVariant.weightGrams) / maxVariantWeight
+          )
+        )
+      : 1;
+
+  const promotion = selectedVariant
+    ? getPromotionPricing(
+        group?.name,
+        selectedVariant.price,
+        selectedVariant.minOfferPrice
+      )
+    : null;
   /*
     ============================================================
     CHOOSE WEIGHT
@@ -214,8 +233,12 @@ export default function ProductDetails() {
       sku: selectedVariant.sku,
 
       price: Number(
-        selectedVariant.price
+        promotion?.price ?? selectedVariant.price
       ),
+      originalPrice: promotion?.originalPrice ?? Number(selectedVariant.price),
+      promotionId: promotion?.id || "",
+      promotionLabel: promotion?.label || "",
+      discountPercent: promotion?.discountPercent || 0,
 
       weight: selectedVariant.weight,
 
@@ -406,7 +429,7 @@ export default function ProductDetails() {
               {group.image ? (
                 <img
                   src={group.image}
-                  alt={group.name}
+                  alt={`${group.name}${selectedVariant?.weight ? ` - ${selectedVariant.weight}` : ""}`}
                   loading="lazy"
                   style={{
                     width: "86%",
@@ -416,6 +439,8 @@ export default function ProductDetails() {
                     display: "block",
                     margin: "auto",
                     mixBlendMode: "multiply",
+                    transform: `scale(${selectedImageScale})`,
+                    transition: "transform 240ms ease",
                   }}
                 />
               ) : (
@@ -427,7 +452,9 @@ export default function ProductDetails() {
             </div>
 
             <small>
-              صورة المنتج
+              {selectedVariant?.weight
+                ? `عبوة ${selectedVariant.weight}`
+                : "صورة المنتج"}
             </small>
 
           </div>
@@ -569,6 +596,7 @@ export default function ProductDetails() {
                               ? "selected"
                               : ""
                           }
+                          aria-pressed={isSelected}
                           onClick={() =>
                             chooseWeight(
                               grams
@@ -590,16 +618,24 @@ export default function ProductDetails() {
                 PRICE
                 ================================================== */}
 
-            <div className="product-price">
-
-              {selectedVariant
-                ? `${(
-                    Number(
-                      selectedVariant.price
-                    ) * quantity
-                  ).toFixed(2)} ج.م`
-                : "—"}
-
+            <div className={`product-price${promotion ? " product-price-promo" : ""}`} aria-live="polite">
+              {selectedVariant ? (
+                promotion ? (
+                  <>
+                    <del>
+                      {(promotion.originalPrice * quantity).toFixed(2)} ج.م
+                    </del>
+                    <strong>
+                      {(promotion.price * quantity).toFixed(2)} ج.م
+                    </strong>
+                    <span className="product-promo-badge">
+                      {promotion.label} · خصم {promotion.discountPercent}%
+                    </span>
+                  </>
+                ) : (
+                  `${(Number(selectedVariant.price) * quantity).toFixed(2)} ج.م`
+                )
+              ) : "—"}
             </div>
 
             {/* ==================================================
@@ -659,6 +695,7 @@ export default function ProductDetails() {
               disabled={
                 !selectedVariant
               }
+              aria-live="polite"
             >
               {added
                 ? "✓ تمت الإضافة للسلة"
@@ -749,7 +786,7 @@ export default function ProductDetails() {
                 to="/checkout"
                 className="product-whatsapp"
               >
-                الانتقال للسلة ←
+                إتمام الطلب ←
               </Link>
             )}
 

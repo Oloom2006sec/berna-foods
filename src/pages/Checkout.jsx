@@ -181,7 +181,22 @@ export default function Checkout() {
       ),
 
     [cart]
+  );
 
+  const promoSavings = useMemo(
+    () =>
+      cart.reduce(
+        (sum, item) =>
+          sum +
+          Math.max(
+            0,
+            Number(item.originalPrice || item.price || 0) -
+              Number(item.price || 0)
+          ) *
+            Number(item.quantity || 0),
+        0
+      ),
+    [cart]
   );
 
 
@@ -1101,19 +1116,20 @@ export default function Checkout() {
 
 
           const variantParts =
-
             [];
 
+          if (item.bundleOfferId) {
+            const components = (item.bundleItems || [])
+              .map(
+                (component) =>
+                  `  - ${component.name} ${component.weight} × ${component.quantity}`
+              )
+              .join("\n");
+            return `• باقة ${item.bundleName} × ${item.quantity} = ${formatPrice(itemTotal)} ${STORE_CONFIG.currency}${components ? `\n${components}` : ""}`;
+          }
 
-
-          if (
-
-            item.weight
-
-          ) {
-
+          if (item.weight) {
             variantParts.push(
-
               item.weight
 
             );
@@ -1133,23 +1149,19 @@ const variantText =
 
 
 
+          const promotionText = item.promotionLabel
+            ? ` — ${item.promotionLabel} (${item.discountPercent}%)`
+            : "";
+
           return `• ${
-
             item.name
-
           }${variantText} × ${
-
             item.quantity
-
           } = ${formatPrice(
-
             itemTotal
-
           )} ${
-
             STORE_CONFIG.currency
-
-          }`;
+          }${promotionText}`;
 
         })
 
@@ -2926,21 +2938,26 @@ return (
 
                         className="checkout-item"
 
-                        key={
-
-                          item.sku ||
-
-                          item.id
-
-                        }
+                        key={item.cartLineId || item.sku || item.id}
 
                       >
 
 
 
                         <div className="checkout-item-icon">
-
-                          {item.image ? (
+                          {item.bundleItems?.length ? (
+                            <div className="cart-bundle-thumbnails">
+                              {item.bundleItems.slice(0, 4).map((component) => (
+                                <span key={component.sku}>
+                                  {component.image ? (
+                                    <img src={component.image} alt="" loading="lazy" />
+                                  ) : (
+                                    "🍯"
+                                  )}
+                                </span>
+                              ))}
+                            </div>
+                          ) : item.image ? (
 
                             <img
                               src={item.image}
@@ -3016,7 +3033,22 @@ return (
 
                           </small>
 
+                          {item.promotionLabel && (
+                            <small className="checkout-promotion-label">
+                              {item.promotionLabel} · {item.discountPercent}%
+                            </small>
+                          )}
 
+                          {item.bundleItems?.length > 0 && (
+                            <ul className="checkout-bundle-components">
+                              {item.bundleItems.map((component) => (
+                                <li key={component.sku}>
+                                  {component.name} · {component.weight} ×{" "}
+                                  {component.quantity}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
 
 
 
@@ -3035,9 +3067,8 @@ return (
                                 onClick={() =>
 
                                   decreaseQuantity(
-
-                                    item.sku ||
-
+                                    item.cartLineId ||
+                                      item.sku ||
                                       item.id
 
                                   )
@@ -3071,9 +3102,8 @@ return (
                                 onClick={() =>
 
                                   increaseQuantity(
-
-                                    item.sku ||
-
+                                    item.cartLineId ||
+                                      item.sku ||
                                       item.id
 
                                   )
@@ -3103,9 +3133,8 @@ return (
                               onClick={() =>
 
                                 removeFromCart(
-
-                                  item.sku ||
-
+                                  item.cartLineId ||
+                                    item.sku ||
                                     item.id
 
                                 )
@@ -3132,29 +3161,22 @@ return (
 
                         <strong className="checkout-item-price">
 
-
-
-                          {formatPrice(
-
-                            Number(
-
-                              item.price
-
-                            ) *
-
-                              Number(
-
-                                item.quantity
-
-                              )
-
-                          )}{" "}
-
-                          {
-
-                            STORE_CONFIG.currency
-
-                          }
+                          {item.originalPrice > item.price && (
+                            <del>
+                              {formatPrice(
+                                Number(item.originalPrice) *
+                                  Number(item.quantity)
+                              )}{" "}
+                              {STORE_CONFIG.currency}
+                            </del>
+                          )}
+                          <span>
+                            {formatPrice(
+                              Number(item.price) *
+                                Number(item.quantity)
+                            )}{" "}
+                            {STORE_CONFIG.currency}
+                          </span>
 
 
 
@@ -3180,13 +3202,21 @@ return (
 
               <div className="summary-lines">
 
-
+                {promoSavings > 0 && (
+                  <div>
+                    <span>الإجمالي قبل العرض</span>
+                    <strong>
+                      {formatPrice(cartTotal + promoSavings)}{" "}
+                      {STORE_CONFIG.currency}
+                    </strong>
+                  </div>
+                )}
 
                 <div>
 
                   <span>
 
-                    المنتجات
+                    {promoSavings > 0 ? "المنتجات بعد الخصم" : "المنتجات"}
 
                   </span>
 
@@ -3210,6 +3240,15 @@ return (
 
                 </div>
 
+                {promoSavings > 0 && (
+                  <div className="checkout-promo-savings">
+                    <span>إجمالي الخصم</span>
+                    <strong>
+                      −{formatPrice(promoSavings)}{" "}
+                      {STORE_CONFIG.currency}
+                    </strong>
+                  </div>
+                )}
 
 
 

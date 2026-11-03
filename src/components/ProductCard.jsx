@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
+import { getProductDetails } from "../data/productDetails";
+import { getPromotionPricing } from "../utils/promotionPricing";
+import { useStoreSettings } from "../context/StoreSettingsContext";
 
 function buildWishlistItem(product) {
   const variants =
@@ -37,6 +40,7 @@ function buildWishlistItem(product) {
 }
 
 export default function ProductCard({ product }) {
+  useStoreSettings();
   const { addToCart } = useCart();
 
   const { wishlist, toggleWishlist } =
@@ -90,6 +94,7 @@ export default function ProductCard({ product }) {
   */
 
   const [added, setAdded] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
 
   /*
     ============================================================
@@ -102,6 +107,22 @@ export default function ProductCard({ product }) {
       (variant) =>
         variant.sku === selectedSku
     ) || variants[0];
+  const promotion = selectedVariant
+    ? getPromotionPricing(
+        product.name,
+        selectedVariant.price,
+        selectedVariant.minOfferPrice
+      )
+    : null;
+  const reviews = getProductDetails(product.name)?.reviews || [];
+  const averageRating = reviews.length
+    ? (
+        reviews.reduce(
+          (sum, review) => sum + Number(review.rating || 0),
+          0
+        ) / reviews.length
+      ).toFixed(1)
+    : null;
 
   /*
     ============================================================
@@ -195,8 +216,12 @@ export default function ProductCard({ product }) {
   sku: selectedVariant.sku,
 
   price: Number(
-    selectedVariant.price
+    promotion?.price ?? selectedVariant.price
   ),
+  originalPrice: promotion?.originalPrice ?? Number(selectedVariant.price),
+  promotionId: promotion?.id || "",
+  promotionLabel: promotion?.label || "",
+  discountPercent: promotion?.discountPercent || 0,
 
   weight: selectedVariant.weight,
 
@@ -231,6 +256,7 @@ export default function ProductCard({ product }) {
               : ""
           }`}
           onClick={handleWishlist}
+          aria-pressed={favorite}
           aria-label={
             favorite
               ? `إزالة ${product.name} من المفضلة`
@@ -246,11 +272,12 @@ export default function ProductCard({ product }) {
           aria-label={`عرض تفاصيل ${product.name}`}
         >
           <div className="product-image">
-            {product.image ? (
+            {product.image && !imageFailed ? (
               <img
                 src={product.image}
                 alt={product.name}
                 loading="lazy"
+                onError={() => setImageFailed(true)}
                 style={{
                   width: "82%",
                   height: "82%",
@@ -262,12 +289,17 @@ export default function ProductCard({ product }) {
                 }}
               />
             ) : (
-              <span>
+              <span className="product-image-fallback" role="img" aria-label={product.name}>
                 {product.icon || "🍯"}
               </span>
             )}
           </div>
         </Link>
+      {promotion && (
+        <span className="product-card-promo-tag">
+          خصم {promotion.discountPercent}%
+        </span>
+      )}
       </div>
 
       {/* ======================================================
@@ -283,6 +315,14 @@ export default function ProductCard({ product }) {
         <h3>
           {product.name}
         </h3>
+
+        {averageRating && (
+          <div className="product-card-rating">
+            <span aria-hidden="true">★★★★★</span>
+            <strong>{averageRating}</strong>
+            <small>({reviews.length} آراء)</small>
+          </div>
+        )}
 
         <p className="product-description">
           {product.description ||
@@ -337,16 +377,24 @@ export default function ProductCard({ product }) {
 
           {/* PRICE */}
 
-          <div className="card-price">
-
-            {selectedVariant
-              ? `${(
-                  Number(
-                    selectedVariant.price
-                  ) * quantity
-                ).toFixed(2)} ج.م`
-              : "—"}
-
+          <div className={`card-price${promotion ? " card-price-promo" : ""}`}>
+            {selectedVariant ? (
+              promotion ? (
+                <>
+                  <del>
+                    {(promotion.originalPrice * quantity).toFixed(2)} ج.م
+                  </del>
+                  <strong>
+                    {(promotion.price * quantity).toFixed(2)} ج.م
+                  </strong>
+                  <span className="product-promo-badge">
+                    -{promotion.discountPercent}%
+                  </span>
+                </>
+              ) : (
+                `${(Number(selectedVariant.price) * quantity).toFixed(2)} ج.م`
+              )
+            ) : "—"}
           </div>
 
           {/* PRODUCT DETAILS */}

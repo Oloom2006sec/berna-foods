@@ -7,7 +7,7 @@ import { products } from "../data/products";
 
   قاعدة العمل:
 
-  1. كل الـ SKU الأصلية تظل موجودة في products.
+  1. الـ SKU المتوقفة تظل محفوظة للتوافق مع السجلات السابقة.
   2. الموقع يعرض المنتج كمنتج واحد فقط.
   3. البيع على الموقع = عبوة بلاستيك فقط.
   4. العميل يختار الوزن فقط.
@@ -34,19 +34,19 @@ import { products } from "../data/products";
 
 const PRODUCT_IMAGES = {
   "عسل أعشاب جبلية":
-    "/images/products/berna_honey_mountain_herbs_FINAL.webp",
+    "/images/products/berna_honey_mountain_new_jar.webp",
 
   "عسل الموالح":
-    "/images/products/berna_honey_almawleh_jar.webp",
+    "/images/products/berna_honey_almawleh_new_jar.webp",
 
   "عسل حبة البركة":
-    "/images/products/berna_honey_habbat_elbaraka_dark_jar.webp",
+    "/images/products/berna_honey_habbat_elbaraka_new_jar.webp",
 
   "عسل البرسيم":
-    "/images/products/berna_honey_albarsim_jar.webp",
+    "/images/products/berna_honey_albarsim_new_jar.webp",
 
   "عسل بالمكسرات":
-    "/images/products/berna_honey_nuts_jar.webp",
+    "/images/products/berna_honey_nuts_new_jar.webp",
 
   "زيت الزيتون":
     "/images/products/berna_olive_oil_bottle.webp",
@@ -64,16 +64,28 @@ const PRODUCT_IMAGES = {
     "/images/products/berna_tahini_realistic_jar.webp",
 
   "عسل أسود":
-    "/images/products/berna_black_honey_jar.webp",
+    "/images/products/berna_black_honey_new_jar.webp",
 
   "عسل سدر مصري":
-    "/images/products/berna_honey_molasses_egyptian_jar.webp",
+    "/images/products/berna_honey_sidr_egyptian_new_jar.webp",
 
   "عسل بردقوش":
-    "/images/products/berna_honey_bardaqous_jar.webp",
+    "/images/products/berna_honey_bardaqous_new_jar.webp",
 
   "عسل أعشاب برية":
-    "/images/products/berna_honey_wild_herbs_jar.webp",
+    "/images/products/berna_honey_wild_herbs_new_jar.webp",
+
+  "مختوم فلسطيني":
+    "/images/products/berna_honey_makhtoom_new_jar.webp",
+
+  "شمع عسل":
+    "/images/products/berna_beeswax_honey_tub.webp",
+};
+
+const FALLBACK_PRODUCT_IMAGES = {
+  "عسل النحل": "/images/products/berna_honey_mountain_new_jar.webp",
+  عسل: "/images/products/berna_honey_mountain_new_jar.webp",
+  "منتجات غذائية": "/images/products/berna_olive_oil_bottle.webp",
 };
 
 
@@ -91,6 +103,10 @@ export function groupProducts(source = products) {
   */
 
   source.forEach((product) => {
+    if (product.available === false) {
+      return;
+    }
+
     const key = product.name;
 
     if (!groups.has(key)) {
@@ -108,7 +124,9 @@ export function groupProducts(source = products) {
         */
 
         image:
-          PRODUCT_IMAGES[product.name] || "",
+          Object.hasOwn(PRODUCT_IMAGES, product.name)
+            ? PRODUCT_IMAGES[product.name]
+            : FALLBACK_PRODUCT_IMAGES[product.category] || "",
 
         description:
           product.description?.replace(

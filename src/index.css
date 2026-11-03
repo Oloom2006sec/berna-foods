@@ -932,6 +932,34 @@ a {
   flex-shrink: 0;
 }
 
+.cart-bundle-thumbnails {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  padding: 5px;
+}
+
+.cart-bundle-thumbnails span {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 15px;
+}
+
+.cart-bundle-thumbnails img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
 .cart-item-info {
   flex: 1;
 }
@@ -944,6 +972,16 @@ a {
 .cart-item-info small {
   color: #8d8578;
   margin: 3px 0;
+}
+
+.cart-bundle-components {
+  display: grid;
+  gap: 3px;
+  margin: 5px 0;
+  padding: 0;
+  color: #687267;
+  font-size: 12px;
+  list-style: none;
 }
 
 .quantity {
@@ -1499,6 +1537,16 @@ a {
 .checkout-item-info small {
   color: #8a8173;
   margin: 3px 0 8px;
+}
+
+.checkout-bundle-components {
+  display: grid;
+  gap: 3px;
+  margin: 4px 0 8px;
+  padding: 0;
+  color: #687267;
+  font-size: 12px;
+  list-style: none;
 }
 
 .checkout-item-controls {
@@ -9605,5 +9653,190 @@ body .admin-header-bar {
 
   .orders-search-input {
     font-size: 13px;
+  }
+}
+
+
+/* =====================================================
+   BERNA FOODS — PREMIUM HEADER V2
+===================================================== */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(250, 247, 239, 0.97);
+  border-bottom: 1px solid #e5d7bb;
+  box-shadow: 0 6px 24px rgba(48, 42, 29, 0.07);
+  backdrop-filter: blur(14px);
+}
+
+.header .header-inner {
+  min-height: 86px;
+  gap: 30px;
+}
+
+/* Logo */
+.header .logo {
+  gap: 13px;
+}
+
+.header .logo-icon {
+  width: 49px;
+  height: 49px;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #d9bd7b, #a9823e);
+  color: white;
+  box-shadow: 0 5px 15px rgba(169, 130, 62, 0.25);
+}
+
+.header .logo strong {
+  color: #343a27;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.header .logo small {
+  color: #9b7b43;
+  opacity: 1;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+/* Navigation */
+.header .nav {
+  gap: 25px;
+}
+
+.header .nav a {
+  position: relative;
+  color: #484735;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 0;
+  transition: color 0.25s ease;
+}
+
+.header .nav a::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  width: 0;
+  height: 2px;
+  background: #b89555;
+  transition: width 0.25s ease;
+}
+
+.header .nav a:hover {
+  color: #a9823e;
+}
+
+.header .nav a:hover::after {
+  width: 100%;
+}
+
+/* Search */
+.header .header-search {
+  width: 205px;
+  height: 44px;
+  border: 1px solid #e5d7bb;
+  border-radius: 30px;
+  background: #fffefa;
+  transition: all 0.25s ease;
+}
+
+.header .header-search:focus-within {
+  border-color: #b89555;
+  box-shadow: 0 0 0 4px rgba(184, 149, 85, 0.12);
+}
+
+/* Actions */
+.header .header-actions {
+  gap: 10px;
+}
+
+.header .wishlist-header-btn,
+.header .cart-btn,
+.header .mobile-menu-btn {
+  border: 1px solid #e5d7bb;
+  background: #fffefa;
+  color: #4b5035;
+  border-radius: 13px;
+  transition: all 0.25s ease;
+}
+
+.header .wishlist-header-btn:hover,
+.header .cart-btn:hover,
+.header .mobile-menu-btn:hover {
+  background: #f3ead8;
+  border-color: #b89555;
+  color: #987640;
+  transform: translateY(-2px);
+}
+
+.header .cart-btn > span {
+  background: #b89555;
+  color: white;
+}
+
+/* Desktop */
+@media (min-width: 901px) {
+  .header .nav {
+    display: flex;
+  }
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  .header .header-inner {
+    min-height: 76px;
+  }
+
+  .header .nav {
+    top: calc(100% + 1px);
+    right: 0;
+    left: 0;
+    padding: 12px 20px;
+    background: #faf7ef;
+    border: 1px solid #e5d7bb;
+    border-top: none;
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 15px 30px rgba(49, 48, 34, 0.10);
+    gap: 0;
+  }
+
+  .header .nav.nav-open {
+    display: flex;
+  }
+
+  .header .nav a {
+    width: 100%;
+    padding: 13px 8px;
+    border-bottom: 1px solid #eee5d6;
+  }
+
+  .header .nav a::after {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .header .header-inner {
+    min-height: 68px;
+    gap: 7px;
+  }
+
+  .header .logo-icon {
+    width: 39px;
+    height: 39px;
+  }
+
+  .header .logo strong {
+    font-size: 17px;
+  }
+
+  .header .header-actions {
+    gap: 6px;
   }
 }

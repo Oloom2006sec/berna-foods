@@ -1,6 +1,6 @@
 // BERNA FOODS - Product Catalog
-// Prices are the final consumer prices from column P (سعر المستهلك بعد الخصم).
-// 60 SKUs | Prices rounded/displayed to 2 decimal places.
+// Base and minimum offer prices follow the approved "New price.xlsx" workbook.
+// Existing SKUs are retained; unavailable variants remain marked unavailable.
 
 const products = [
   {
@@ -770,7 +770,242 @@ const products = [
     description: "عسل أعشاب برية - 250 جم - زجاج",
     available: true,
   },
+  {
+    id: "berna-060-asl-mkhtoom-flstiny-بلاستيك-1000g",
+    name: "مختوم فلسطيني",
+    category: "عسل",
+    weight: "1 كجم",
+    weightGrams: 1000,
+    packageType: "بلاستيك",
+    price: 350,
+    sku: "BERNA-060-asl-mkhtoom-flstiny-بلاستيك-1000G",
+    icon: "🍯",
+    description: "مختوم فلسطيني - 1 كجم - بلاستيك",
+    available: true,
+  },
+  {
+    id: "berna-061-asl-mkhtoom-flstiny-بلاستيك-500g",
+    name: "مختوم فلسطيني",
+    category: "عسل",
+    weight: "500 جم",
+    weightGrams: 500,
+    packageType: "بلاستيك",
+    price: 175,
+    sku: "BERNA-061-asl-mkhtoom-flstiny-بلاستيك-500G",
+    icon: "🍯",
+    description: "مختوم فلسطيني - 500 جم - بلاستيك",
+    available: true,
+  },
+  {
+    id: "berna-062-asl-mkhtoom-flstiny-بلاستيك-250g",
+    name: "مختوم فلسطيني",
+    category: "عسل",
+    weight: "250 جم",
+    weightGrams: 250,
+    packageType: "بلاستيك",
+    price: 87.5,
+    sku: "BERNA-062-asl-mkhtoom-flstiny-بلاستيك-250G",
+    icon: "🍯",
+    description: "مختوم فلسطيني - 250 جم - بلاستيك",
+    available: true,
+  },
+  {
+    id: "berna-063-sham3-asl-بلاستيك-1000g",
+    name: "شمع عسل",
+    category: "عسل",
+    weight: "1 كجم",
+    weightGrams: 1000,
+    packageType: "بلاستيك",
+    price: 300,
+    sku: "BERNA-063-sham3-asl-بلاستيك-1000G",
+    icon: "🍯",
+    description: "شمع عسل - 1 كجم - بلاستيك",
+    available: true,
+  },
+  {
+    id: "berna-064-sham3-asl-بلاستيك-500g",
+    name: "شمع عسل",
+    category: "عسل",
+    weight: "500 جم",
+    weightGrams: 500,
+    packageType: "بلاستيك",
+    price: 150,
+    sku: "BERNA-064-sham3-asl-بلاستيك-500G",
+    icon: "🍯",
+    description: "شمع عسل - 500 جم - بلاستيك",
+    available: true,
+  },
+  {
+    id: "berna-065-thynh-عبوة-400g",
+    name: "طحينة",
+    category: "طحينة",
+    weight: "400 جم",
+    weightGrams: 400,
+    packageType: "عبوة",
+    price: 112.5,
+    sku: "BERNA-065-thynh-عبوة-400G",
+    icon: "🥣",
+    description: "طحينة - 400 جم - عبوة",
+    available: true,
+  },
 ];
+
+const PRICE_BOOK = {
+  "عسل أعشاب جبلية": {
+    1000: [450, 300],
+    500: [225, 150],
+    250: [112.5, 75],
+  },
+  "عسل الموالح": {
+    1000: [330, 265],
+    500: [165, 132.5],
+    250: [82.5, 66.25],
+  },
+  "عسل حبة البركة": {
+    1000: [400, 285],
+    500: [200, 142.5],
+    250: [100, 71.25],
+  },
+  "عسل البرسيم": {
+    1000: [300, 250],
+    500: [150, 125],
+    250: [75, 62.5],
+  },
+  "عسل بالمكسرات": {
+    1000: [350, 275],
+    500: [175, 137.5],
+    250: [87.5, 68.75],
+  },
+  "زيت الزيتون": {
+    1000: [700, 500],
+    500: [350, 250],
+    250: [175, 125],
+  },
+  "دبس الرمان": {
+    250: [125, 85],
+  },
+  "خل التفاح": {
+    250: [125, 85],
+  },
+  "صويا صوص": {
+    250: [125, 85],
+  },
+  طحينة: {
+    800: [225, 175],
+    400: [112.5, 87.5],
+  },
+  "عسل أسود": {
+    1000: [100, 85],
+    500: [50, 42.5],
+    250: [25, 21.25],
+  },
+  "عسل سدر مصري": {
+    1000: [1250, 850],
+    500: [625, 425],
+    250: [312.5, 212.5],
+  },
+  "عسل بردقوش": {
+    1000: [400, 285],
+    500: [200, 142.5],
+    250: [100, 71.25],
+  },
+  "عسل أعشاب برية": {
+    1000: [450, 300],
+    500: [225, 150],
+    250: [112.5, 75],
+  },
+  "مختوم فلسطيني": {
+    1000: [700, 650],
+    500: [350, 325],
+    250: [175, 162.5],
+  },
+  "شمع عسل": {
+    1000: [300, 250],
+    500: [150, 125],
+  },
+};
+
+const PRODUCT_CATEGORIES = {
+  "عسل أعشاب جبلية": "عسل",
+  "عسل الموالح": "عسل",
+  "عسل حبة البركة": "عسل",
+  "عسل البرسيم": "عسل",
+  "عسل بالمكسرات": "عسل",
+  "عسل سدر مصري": "عسل",
+  "عسل بردقوش": "عسل",
+  "عسل أعشاب برية": "عسل",
+  "مختوم فلسطيني": "منتجات غذائية",
+  "شمع عسل": "عسل",
+  "عسل أسود": "عسل أسود",
+  "زيت الزيتون": "زيت",
+  "دبس الرمان": "دبس رمان",
+  "خل التفاح": "خل",
+  "صويا صوص": "صوص",
+  طحينة: "طحينة",
+};
+
+const VOLUME_PRODUCTS = new Set([
+  "زيت الزيتون",
+  "دبس الرمان",
+  "خل التفاح",
+  "صويا صوص",
+]);
+
+for (const product of products) {
+  product.category = PRODUCT_CATEGORIES[product.name] || product.category;
+
+  if (product.name === "عسل بالمكسرات" && product.weightGrams === 750) {
+    product.available = false;
+    continue;
+  }
+
+  const prices = PRICE_BOOK[product.name]?.[product.weightGrams];
+  if (!prices) {
+    throw new Error(
+      `Missing approved price for ${product.name} (${product.weightGrams}g)`
+    );
+  }
+
+  [product.price, product.minOfferPrice] = prices;
+
+  if (VOLUME_PRODUCTS.has(product.name)) {
+    product.weight = `${product.weightGrams} مل`;
+    product.description = `${product.name} - ${product.weight} - ${product.packageType}`;
+  }
+}
+
+const productNamesWithPlasticVariants = new Set(
+  products
+    .filter((product) => product.packageType === "بلاستيك")
+    .map((product) => product.name)
+);
+const plasticNutVariants = [];
+
+for (const product of products) {
+  if (product.packageType !== "زجاج") {
+    continue;
+  }
+
+  if (productNamesWithPlasticVariants.has(product.name)) {
+    product.available = false;
+    continue;
+  }
+
+  if (product.name === "عسل بالمكسرات") {
+    const wasAvailable = product.available !== false;
+    product.available = false;
+    plasticNutVariants.push({
+      ...product,
+      id: product.id.replace("زجاج", "بلاستيك"),
+      sku: product.sku.replace("زجاج", "بلاستيك"),
+      packageType: "بلاستيك",
+      description: product.description.replace("زجاج", "بلاستيك"),
+      available: wasAvailable,
+    });
+  }
+}
+
+products.push(...plasticNutVariants);
 
 export { products };
 export default products;

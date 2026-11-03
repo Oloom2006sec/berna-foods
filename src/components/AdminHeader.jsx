@@ -57,6 +57,13 @@ export default function AdminHeader() {
           </Link>
 
           <Link
+            to="/admin/catalog"
+            className="admin-nav-link"
+          >
+            🏷️ الأسعار والعروض
+          </Link>
+
+          <Link
             to="/track-order"
             className="admin-nav-link"
           >

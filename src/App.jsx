@@ -1,12 +1,20 @@
+import { useEffect, useState } from "react";
 import "./index.css";
 
 import {
   BrowserRouter,
+  Link,
   Routes,
   Route,
+  useLocation,
+  useNavigate,
 } from "react-router-dom";
 
 import Header from "./components/Header";
+import CampaignPopup from "./components/CampaignPopup";
+import HomeOfferCard from "./components/HomeOfferCard";
+import PromoFlashShowcase from "./components/PromoFlashShowcase";
+import BundleOffersSection from "./components/BundleOffersSection";
 import ProductCard from "./components/ProductCard";
 
 import ProductDetails from "./pages/ProductDetails";
@@ -17,265 +25,411 @@ import OrderTracking from "./pages/OrderTracking";
 
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminOrders from "./pages/AdminOrders";
+import AdminCatalog from "./pages/AdminCatalog";
 import AdminLogin from "./pages/AdminLogin";
 import AdminRoute from "./components/AdminRoute";
 import AdminHeader from "./components/AdminHeader";
 
-import { CartProvider } from "./context/CartContext";
+import { useStoreSettings } from "./context/StoreSettingsContext";
 import { groupProducts } from "./utils/productGroups";
+import { getProductDetails } from "./data/productDetails";
+import { homePromotions } from "./data/homePromotions";
+import "./berna-redesign.css";
 
 /* =========================================================
    HOME
 ========================================================= */
 
-function Home() {
+function HomePage() {
+  const { hash } = useLocation();
+  const navigate = useNavigate();
+  const { settings } = useStoreSettings();
   const groupedProducts = groupProducts();
+  const productByName = (name) =>
+    groupedProducts.find((product) => product.name === name);
+  const campaignProductNames = new Set(
+    settings.productOffers
+      .filter((offer) => Number(offer.discountPercent) > 0)
+      .map((offer) => offer.productName)
+  );
+  const productOutsideCampaign = (product) =>
+    product && !campaignProductNames.has(product.name);
+  const featuredProducts = [
+    "عسل الموالح",
+    "عسل حبة البركة",
+    "زيت الزيتون",
+    "دبس الرمان",
+  ]
+    .map(productByName)
+    .filter(productOutsideCampaign);
+  const promotionProducts = settings.productOffers
+    .filter((offer) => Number(offer.discountPercent) > 0)
+    .map((offer) => ({
+      ...offer,
+      product: productByName(offer.productName),
+    }))
+    .filter((offer) => offer.product);
+  const honeyProducts = [
+    "عسل الموالح",
+    "عسل حبة البركة",
+    "عسل البرسيم",
+    "عسل سدر مصري",
+    "عسل أعشاب جبلية",
+    "عسل بردقوش",
+    "عسل أعشاب برية",
+    "عسل بالمكسرات",
+  ]
+    .map(productByName)
+    .filter(Boolean);
+  const honeyCategories = [
+    { id: "all", label: "كل الأنواع", products: honeyProducts },
+    {
+    id: "classic",
+    label: "العسل السادة",
+    products: [
+      "عسل الموالح",
+      "عسل حبة البركة",
+      "عسل البرسيم",
+      "عسل سدر مصري",
+    ].map(productByName).filter(Boolean),
+    },
+    {
+    id: "herbs",
+    label: "بالأعشاب",
+    products: [
+    "عسل أعشاب جبلية",
+    "عسل بردقوش",
+    "عسل أعشاب برية",
+    ].map(productByName).filter(Boolean),
+    },
+    {
+    id: "blends",
+    label: "بالمكسرات",
+    products: ["عسل بالمكسرات"].map(productByName).filter(Boolean),
+    },
+  ];
+  const pantryProducts = [
+    "زيت الزيتون",
+    "دبس الرمان",
+    "خل التفاح",
+    "صويا صوص",
+    "طحينة",
+    "عسل أسود",
+    "مختوم فلسطيني",
+    "شمع عسل",
+  ]
+    .map(productByName)
+    .filter(Boolean);
+  const benefitLinks = [
+    {
+      title: "أنواع العسل",
+      description: "العسل السادة، وبالأعشاب، وبالمكسرات.",
+      productName: "عسل البرسيم",
+      href: "#honey",
+    },
+    {
+      title: "منتجات المائدة",
+      description: "اختيارات متنوعة لمطبخك.",
+      productName: "طحينة",
+      href: "#pantry",
+    },
+  ];
+  const [selectedHoneyCategory, setSelectedHoneyCategory] = useState("all");
+  const activeHoneyCategory =
+    hash === "#herbs"
+      ? "herbs"
+      : hash === "#blends"
+        ? "blends"
+        : hash === "#honey"
+          ? "all"
+          : selectedHoneyCategory;
+  const activeHoneyProducts =
+    honeyCategories.find((category) => category.id === activeHoneyCategory)
+      ?.products || honeyProducts;
+  const [activePromoSlide, setActivePromoSlide] = useState(0);
+  const promoSlide = homePromotions[activePromoSlide];
+  const productReviews = groupedProducts
+    .flatMap((product) =>
+      (getProductDetails(product.name)?.reviews || []).map((review) => ({
+        ...review,
+        productName: product.name,
+      }))
+    );
+  const customerReviews = productReviews.slice(0, 3);
+  const averageReviewRating = productReviews.length
+    ? (
+        productReviews.reduce(
+          (sum, review) => sum + Number(review.rating || 0),
+          0
+        ) / productReviews.length
+      ).toFixed(1)
+    : null;
 
   return (
-    <main dir="rtl">
+    <main className="home-page" dir="rtl">
+      <CampaignPopup />
 
-      {/* ================= HERO ================= */}
-
-      <section className="hero">
-        <div className="container hero-inner">
-
-          <div className="hero-content">
-
-            <span className="eyebrow">
-              أهلاً بيك في بيرنا فوودز 🍯
-            </span>
-
-            <h1>
-              طعم تحبه...
-              <br />
-              وتجربة تستحق
-              <br />
-              <span>الثقة</span>
-            </h1>
-
-            <p>
-              اكتشف مجموعة مختارة من عسل النحل
-              ومنتجات النحل، بالإضافة إلى العسل
-              الأسود والطحينة.
-            </p>
-
-            <div className="hero-actions">
-
-              <a
-                href="/products"
-                className="primary-btn"
-              >
-                تسوق الآن
-              </a>
-
-              <a
-                href="#categories"
-                className="secondary-btn"
-              >
-                اكتشف منتجاتنا
-              </a>
-
-            </div>
-
-          </div>
-
-          <div className="hero-visual">
-
-            <div className="hero-product-card">
-
-              <div className="hero-product-image">
-  <img
-    src="/images/products/berna_honey_mountain_herbs_FINAL.webp"
-    alt="عسل بيرنا"
-  />
-</div>
-
-              <span>
-                BERNA
-              </span>
-
-              <strong>
-                Natural Honey
-              </strong>
-
-              <small>
-                طعم من الطبيعة
-              </small>
-
-            </div>
-
-            <div className="hero-floating-card hero-card-top">
-  <img
-    src="/images/products/berna_honey_almawleh_jar.webp"
-    alt="عسل الموالح"
-  />
-
-  <div>
-    <strong>عسل الموالح</strong>
-    <small>الأكثر طلباً</small>
-  </div>
-</div>
-
-            <div className="hero-floating-card hero-card-bottom">
-  <img
-    src="/images/products/berna_honey_nuts_jar.webp"
-    alt="عسل بالمكسرات"
-  />
-
-  <div>
-    <strong>بالمكسرات</strong>
-    <small>اختيار مميز</small>
-  </div>
-</div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* ================= CATEGORIES ================= */}
-
-      <section
-        className="categories-section"
-        id="categories"
-      >
+      {/* ================= CAMPAIGN HERO ================= */}
+      <section className="home-promotion-carousel home-promotion-hero" aria-label="عروض ومختارات بيرنا">
         <div className="container">
-
-          <div className="section-title">
-
-            <span className="eyebrow">
-              اكتشف بيرنا
-            </span>
-
-            <h2>
-              اختار اللي يناسبك
-            </h2>
-
-            <p>
-              مجموعة متنوعة لكل ذوق ولكل سفرة.
-            </p>
-
-          </div>
-
-          <div className="categories-grid">
-
-            <a
-              href="/products?search=عسل"
-              className="category-card"
+          <div className={`home-promotion-banner tone-${promoSlide.tone}`}>
+            <div className="home-promotion-copy">
+              <span className="eyebrow">{promoSlide.eyebrow}</span>
+              {promoSlide.offerBadge && (
+                <span className="promo-offer-badge">{promoSlide.offerBadge}</span>
+              )}
+              <h1>{promoSlide.title}</h1>
+              <p>{promoSlide.description}</p>
+              <a href={promoSlide.href} className="primary-btn">
+                {promoSlide.cta}
+              </a>
+            </div>
+            {promoSlide.campaign ? (
+              <PromoFlashShowcase
+                offers={promotionProducts}
+                bundles={settings.bundleOffers}
+              />
+            ) : (
+              <img src={promoSlide.image} alt={promoSlide.alt} />
+            )}
+            <button
+              type="button"
+              className="promo-slide-arrow promo-slide-previous"
+              aria-label="البانر السابق"
+              onClick={() =>
+                setActivePromoSlide(
+                  (activePromoSlide - 1 + homePromotions.length) % homePromotions.length
+                )
+              }
             >
-              <span>🍯</span>
-
-              <strong>
-                عسل النحل
-              </strong>
-
-              <small>
-                موالح، برسيم، حبة البركة والمزيد
-              </small>
-            </a>
-
-            <a
-              href="/products?search=منتجات النحل"
-              className="category-card"
+              ‹
+            </button>
+            <button
+              type="button"
+              className="promo-slide-arrow promo-slide-next"
+              aria-label="البانر التالي"
+              onClick={() =>
+                setActivePromoSlide(
+                  (activePromoSlide + 1) % homePromotions.length
+                )
+              }
             >
-              <span>🐝</span>
-
-              <strong>
-                منتجات النحل
-              </strong>
-
-              <small>
-                شمع العسل وحبوب اللقاح
-              </small>
-            </a>
-
-            <a
-              href="/products?search=منتجات مصرية"
-              className="category-card"
-            >
-              <span>🖤</span>
-
-              <strong>
-                منتجات مصرية
-              </strong>
-
-              <small>
-                العسل الأسود والطحينة
-              </small>
-            </a>
-
-            <a
-              href="/products"
-              className="category-card"
-            >
-              <span>🎁</span>
-
-              <strong>
-                الباقات والهدايا
-              </strong>
-
-              <small>
-                اختيارات مناسبة لكل مناسبة
-              </small>
-            </a>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* ================= PRODUCTS ================= */}
-
-      <section
-        className="products-section"
-        id="products"
-      >
-        <div className="container">
-
-          <div className="section-title">
-
-            <span className="eyebrow">
-              منتجاتنا
-            </span>
-
-            <h2>
-              الأكثر طلباً
-            </h2>
-
-            <p>
-              اختيارات مميزة من منتجات بيرنا.
-            </p>
-
-          </div>
-
-          <div className="products-grid">
-
-            {groupedProducts
-              .slice(0, 4)
-              .map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
+              ›
+            </button>
+            <div className="promo-slide-dots" role="group" aria-label="بانرات بيرنا">
+              {homePromotions.map((slide, index) => (
+                <button
+                  key={slide.title}
+                  type="button"
+                  aria-label={`عرض ${slide.title}`}
+                  aria-pressed={activePromoSlide === index}
+                  className={activePromoSlide === index ? "selected" : ""}
+                  onClick={() => setActivePromoSlide(index)}
                 />
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
+      <BundleOffersSection bundles={settings.bundleOffers} />
+
+      <section
+        className="home-benefits-section home-shop-shortcuts"
+        aria-labelledby="home-benefits-title"
+      >
+        <div className="container">
+          <div className="home-shop-heading">
+            <span className="eyebrow">اختيارات بيرنا</span>
+            <h2 id="home-benefits-title">تسوّق حسب ما تحب</h2>
+            <p>اختار القسم المناسب، وشوف المنتجات والأوزان المتاحة.</p>
+          </div>
+
+          <nav className="home-shop-grid" aria-label="تسوّق حسب نوع المنتج">
+            {benefitLinks.map((benefit) => {
+              const product = productByName(benefit.productName);
+
+              return (
+                <a className="home-shop-card" key={benefit.title} href={benefit.href}>
+                  <span className="home-shop-card-image">
+                    {product?.image ? (
+                      <img src={product.image} alt="" loading="lazy" />
+                    ) : (
+                      <span aria-hidden="true">🍯</span>
+                    )}
+                  </span>
+                  <span className="home-shop-card-copy">
+                    <strong>{benefit.title}</strong>
+                    <small>{benefit.description}</small>
+                  </span>
+                  <b aria-hidden="true">←</b>
+                </a>
+              );
+            })}
+          </nav>
+        </div>
+      </section>
+
+      <section
+        className="home-deals-section"
+        id="offers"
+        aria-labelledby="home-deals-title"
+      >
+        <div className="container">
+          <div className="home-deals-heading">
+            <span className="eyebrow">عروض بيرنا</span>
+            <h2 id="home-deals-title">عروض الجمعة البيضاء</h2>
+            <p>اختيارات بيرنا بأسعار العروض المميزة.</p>
+            <span className="home-deals-divider" aria-hidden="true"><i /></span>
+          </div>
+          <div className="home-deals-grid">
+            {promotionProducts.map(({ product, discountPercent }) => (
+              <HomeOfferCard
+                key={product.id}
+                product={product}
+                discountPercent={discountPercent}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= OFFERS / FEATURED PRODUCTS ================= */}
+
+      {featuredProducts.length > 0 && <section
+        className="products-section home-offers-section"
+        id="featured-products"
+      >
+        <div className="container">
+          <div className="section-title">
+            <span className="eyebrow">مختارات بيرنا</span>
+            <h2>منتجات تستحق التجربة</h2>
+            <p>تصفّح منتجات بيرنا واختر الحجم المناسب لك.</p>
+          </div>
+
+          <div className="products-grid home-featured-grid">
+            {featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
           </div>
 
           <div className="products-more">
-
             <a
               href="/products"
               className="outline-btn"
             >
               عرض كل المنتجات
             </a>
-
           </div>
+        </div>
+      </section>}
 
+      {/* ================= CUSTOMER REVIEWS ================= */}
+
+      {customerReviews.length > 0 && (
+        <section
+          className="home-reviews-section"
+          id="customer-reviews"
+          aria-labelledby="home-reviews-title"
+        >
+          <div className="container">
+            <div className="section-title">
+              <span className="eyebrow">من بيانات بيرنا</span>
+              <h2 id="home-reviews-title">آراء عن منتجاتنا</h2>
+              <p>نماذج من الآراء الموجودة في تفاصيل المنتجات.</p>
+            </div>
+
+            <div className="home-reviews-grid">
+              {customerReviews.map((review, index) => (
+                <article className="home-review-card" key={`${review.name}-${review.productName}-${index}`}>
+                  <div className="home-review-stars" aria-label={`تقييم ${review.rating} من 5`}>
+                    {"★".repeat(Number(review.rating) || 5)}
+                    {"☆".repeat(5 - (Number(review.rating) || 5))}
+                  </div>
+                  <blockquote>“{review.text}”</blockquote>
+                  <div className="home-review-author">
+                    <strong>{review.name}</strong>
+                    <span>{review.productName}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="home-guarantee-strip" aria-label="مميزات تجربة بيرنا">
+        <div className="container">
+          <span>اختيارات بيرنا لمائدتك</span>
+          <span>تفاصيل وأوزان واضحة</span>
+          <span>خدمة عملاء عبر WhatsApp</span>
         </div>
       </section>
 
-      {/* ================= WHY BERNA ================= */}
+      {/* ================= PRODUCT CATEGORIES ================= */}
+
+      <div className="home-collections" id="categories">
+        <section className="home-collection-section home-honey-collection" id="honey">
+          <div className="container">
+            <div className="section-title">
+              <span className="eyebrow">من مناحل بيرنا</span>
+              <h2>أنواع العسل</h2>
+              <p>اختار القسم المناسب من العسل السادة أو المنكّه.</p>
+            </div>
+            <div className="home-benefit-tabs" role="group" aria-label="تقسيمات أنواع العسل">
+              {honeyCategories.map((category) => (
+                <button
+                  key={category.id}
+                  type="button"
+                  className={`home-benefit-tab${activeHoneyCategory === category.id ? " selected" : ""}`}
+                  aria-pressed={activeHoneyCategory === category.id}
+                  onClick={() => {
+                    if (hash) {
+                      navigate("/", { replace: true });
+                    }
+                    setSelectedHoneyCategory(category.id);
+                  }}
+                >
+                  {category.label}
+                </button>
+              ))}
+            </div>
+            <div className="products-grid" id="honey-products">
+              {activeHoneyProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="home-collection-section home-pantry-collection" id="pantry">
+          <div className="container">
+            <div className="section-title">
+              <span className="eyebrow">اختيارات للمائدة</span>
+              <h2>منتجات بيرنا الغذائية</h2>
+              <p>تصفّح المنتجات الغذائية المتوفرة من بيرنا.</p>
+            </div>
+            <div className="products-grid">
+              {pantryProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {averageReviewRating && (
+        <section className="home-review-summary" aria-label="ملخص تقييمات بيرنا">
+          <div className="container">
+            <span className="home-review-summary-stars" aria-hidden="true">★★★★★</span>
+            <strong>{averageReviewRating} / 5</strong>
+            <span>من {productReviews.length} تقييماً مسجلاً لمنتجات بيرنا</span>
+            <a href="#customer-reviews">اقرأ آراء عملائنا</a>
+          </div>
+        </section>
+      )}
+
+      {/* ================= TRUST / SERVICE ================= */}
 
       <section
         className="why-berna"
@@ -375,70 +529,35 @@ function Home() {
         </div>
       </section>
 
-      {/* ================= BERNA BOXES ================= */}
-
-      <section
-        className="cta-section"
-        id="offers"
-      >
+      <section className="home-product-gallery" aria-labelledby="home-gallery-title">
         <div className="container">
-
-          <div className="cta-box">
-
+          <div className="home-product-gallery-heading">
             <div>
-
-              <span className="eyebrow">
-                BERNA BOXES 🎁
-              </span>
-
-              <h2>
-                محتار تختار؟
-              </h2>
-
-              <p>
-                جرب باقة تجمع لك أكتر من نوع
-                في باقة واحدة واختيارات مناسبة ليك.
-              </p>
-
+              <span className="eyebrow">من منتجات بيرنا</span>
+              <h2 id="home-gallery-title">اختيارات بيرنا لمائدتك</h2>
             </div>
-
-            <a
-              href="/products"
-              className="primary-btn"
-            >
-              اكتشف الباقات
-            </a>
-
+            <a href="/products" className="outline-btn">كل المنتجات</a>
           </div>
-
-        </div>
-      </section>
-
-      {/* ================= CONTACT ================= */}
-
-      <section
-        className="contact-section"
-        id="contact"
-      >
-        <div className="container">
-
-          <div className="contact-content">
-
-            <span className="eyebrow">
-              تواصل معنا
-            </span>
-
-            <h2>
-              إحنا موجودين لخدمتك
-            </h2>
-
-            <p>
-              عندك سؤال عن منتج أو طلب؟
-              تواصل معانا ونساعدك.
-            </p>
-
+          <div className="home-product-gallery-grid">
+            {[
+              productByName("عسل بالمكسرات"),
+              productByName("عسل بردقوش"),
+              productByName("زيت الزيتون"),
+              productByName("طحينة"),
+            ]
+              .filter(Boolean)
+              .map((product) => (
+                <Link
+                  className="home-gallery-item"
+                  key={product.id}
+                  to={`/products/${product.id}`}
+                  aria-label={`تعرّف على ${product.name}`}
+                >
+                  <img src={product.image} alt={product.name} loading="lazy" />
+                  <span>{product.name}</span>
+                </Link>
+              ))}
           </div>
-
         </div>
       </section>
 
@@ -503,12 +622,20 @@ function Home() {
               روابط سريعة
             </h3>
 
-            <a href="/products">
-              المنتجات
+            <a href="#honey">
+              أنواع العسل
             </a>
 
             <a href="#offers">
-              الباقات
+              مختارات بيرنا
+            </a>
+
+            <a href="#pantry">
+              منتجات المائدة
+            </a>
+
+            <a href="/products">
+              كل المنتجات
             </a>
 
             <a href="#about">
@@ -518,10 +645,10 @@ function Home() {
           </div>
 
           
-<div className="footer-links">
+<div className="footer-links" id="contact">
 
   <h3>
-    تواصل معنا
+    خدمة العملاء
   </h3>
 
   <a
@@ -529,7 +656,7 @@ function Home() {
     target="_blank"
     rel="noopener noreferrer"
   >
-    WhatsApp
+    تواصل معنا على WhatsApp
   </a>
 
   <a
@@ -597,6 +724,25 @@ function Home() {
 
 </div>
 
+          <div className="footer-newsletter">
+            <h3>تابع جديد بيرنا</h3>
+            <p>للتعرّف على الجديد أو الاستفسار عن المنتجات، تواصل معنا عبر قنواتنا الرسمية.</p>
+            <a
+              href="https://www.instagram.com/bernafoods.official/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              تابعنا على إنستجرام
+            </a>
+            <a
+              href="https://wa.me/201029277716"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              راسلنا على WhatsApp
+            </a>
+          </div>
+
 
         </div>
 
@@ -613,15 +759,45 @@ function Home() {
   );
 }
 
+function ScrollToHash() {
+  const { hash, pathname, key } = useLocation();
+
+  useEffect(() => {
+    window.requestAnimationFrame(() => {
+      if (!hash) {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+        return;
+      }
+
+      const requestedTargetId = decodeURIComponent(hash.slice(1));
+      const targetId =
+        requestedTargetId === "herbs" || requestedTargetId === "blends"
+          ? "honey"
+          : requestedTargetId;
+      const target = document.getElementById(targetId);
+
+      if (target) {
+        target.scrollIntoView({
+          behavior: "instant",
+          block: "start",
+        });
+      } else {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      }
+    });
+  }, [hash, pathname, key]);
+
+  return null;
+}
+
 /* =========================================================
    APP
 ========================================================= */
 
 export default function App() {
   return (
-    <CartProvider>
-
-      <BrowserRouter>
+    <BrowserRouter>
+        <ScrollToHash />
 
         <Routes>
 
@@ -634,7 +810,7 @@ export default function App() {
             element={
               <>
                 <Header />
-                <Home />
+                <HomePage />
               </>
             }
           />
@@ -739,12 +915,19 @@ export default function App() {
               }
             />
 
+            <Route
+              path="/admin/catalog"
+              element={
+                <>
+                  <AdminHeader />
+                  <AdminCatalog />
+                </>
+              }
+            />
+
           </Route>
 
         </Routes>
-
-      </BrowserRouter>
-
-    </CartProvider>
+    </BrowserRouter>
   );
 }

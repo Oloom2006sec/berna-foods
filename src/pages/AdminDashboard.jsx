@@ -257,6 +257,13 @@ export default function AdminDashboard() {
             </Link>
 
             <Link
+              to="/admin/catalog"
+              className="dashboard-orders-btn"
+            >
+              🏷️ إدارة الأسعار والعروض
+            </Link>
+
+            <Link
               to="/"
               className="dashboard-store-btn"
             >

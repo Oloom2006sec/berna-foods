@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
-import { useMemo } from "react";
-
 import ProductCard from "../components/ProductCard";
 import { useWishlist } from "../context/WishlistContext";
 
 import { groupProducts } from "../utils/productGroups";
+import { useStoreSettings } from "../context/StoreSettingsContext";
 
 export default function Wishlist() {
+  useStoreSettings();
   const {
     wishlist,
     wishlistCount,
@@ -22,7 +22,7 @@ export default function Wishlist() {
     على customerVariants + prices + weights + image.
   */
 
-  const wishlistProducts = useMemo(() => {
+  const wishlistProducts = (() => {
     const allProducts = groupProducts();
 
     return wishlist
@@ -57,7 +57,7 @@ export default function Wishlist() {
         };
       })
       .filter(Boolean);
-  }, [wishlist]);
+  })();
 
   if (!wishlist.length) {
     return (

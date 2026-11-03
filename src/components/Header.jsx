@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { useCart } from "../context/CartContext";
@@ -7,8 +7,10 @@ import CartDrawer from "./CartDrawer";
 
 export default function Header() {
   const navigate = useNavigate();
+  const { pathname, hash } = useLocation();
 
   const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -19,6 +21,45 @@ export default function Header() {
     setMenuOpen(false);
   }
 
+  function handleNavigation(target) {
+    closeMenu();
+
+    if (target === "/" && pathname === "/") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      return;
+    }
+
+    if (target.startsWith("/#") && pathname === "/") {
+      const requestedHash = target.slice(1);
+      if (hash === requestedHash) {
+        const targetId = decodeURIComponent(requestedHash.slice(1));
+        window.requestAnimationFrame(() => {
+          document.getElementById(targetId)?.scrollIntoView({
+            behavior: "instant",
+            block: "start",
+          });
+        });
+      }
+      return;
+    }
+
+    if (target === pathname) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }
+
+  useEffect(() => {
+    function handleEscape(event) {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        setCartOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, []);
+
   function handleSearch(event) {
     event.preventDefault();
 
@@ -26,6 +67,7 @@ export default function Header() {
 
     if (!query) {
       navigate("/products");
+      setSearchOpen(false);
       closeMenu();
       return;
     }
@@ -33,11 +75,15 @@ export default function Header() {
     navigate(`/products?search=${encodeURIComponent(query)}`);
 
     setSearch("");
+    setSearchOpen(false);
     closeMenu();
   }
 
   return (
     <>
+      <div className="header-announcement" role="note">
+        اختيارات بيرنا الطبيعية لبيتك ومائدتك
+      </div>
       <header className="header">
         <div className="container header-inner">
 
@@ -45,7 +91,7 @@ export default function Header() {
           <Link
             to="/"
             className="logo"
-            onClick={closeMenu}
+            onClick={() => handleNavigation("/")}
           >
             <span className="logo-icon">
               🍯
@@ -60,31 +106,38 @@ export default function Header() {
           {/* Navigation */}
           <nav
             className={`nav ${menuOpen ? "nav-open" : ""}`}
+            id="primary-navigation"
+            aria-label="القائمة الرئيسية"
           >
-            <Link to="/" onClick={closeMenu}>
+            <Link to="/" onClick={() => handleNavigation("/")}>
               الرئيسية
             </Link>
 
-            <Link to="/products" onClick={closeMenu}>
-              المنتجات
+            <Link to="/#offers" onClick={() => handleNavigation("/#offers")}>
+              مختارات بيرنا
             </Link>
 
-            <Link to="/#offers" onClick={closeMenu}>
-              الباقات
+            <Link to="/#honey" onClick={() => handleNavigation("/#honey")}>
+              أنواع العسل
             </Link>
 
-            <Link to="/#about" onClick={closeMenu}>
-              عن بيرنا
+            <Link to="/#pantry" onClick={() => handleNavigation("/#pantry")}>
+              منتجات المائدة
             </Link>
 
-            <Link to="/#contact" onClick={closeMenu}>
+            <Link to="/products" onClick={() => handleNavigation("/products")}>
+              كل المنتجات
+            </Link>
+
+            <Link to="/#contact" onClick={() => handleNavigation("/#contact")}>
               تواصل معنا
             </Link>
           </nav>
 
           {/* Search */}
           <form
-            className="header-search"
+            className={`header-search ${searchOpen ? "mobile-search-open" : ""}`}
+            id="header-search"
             onSubmit={handleSearch}
           >
             <input
@@ -107,6 +160,20 @@ export default function Header() {
           {/* Actions */}
           <div className="header-actions">
 
+            <button
+              className="mobile-search-btn"
+              type="button"
+              onClick={() => {
+                setSearchOpen((open) => !open);
+                closeMenu();
+              }}
+              aria-label={searchOpen ? "إغلاق البحث" : "فتح البحث"}
+              aria-expanded={searchOpen}
+              aria-controls="header-search"
+            >
+              🔎
+            </button>
+
             {/* Wishlist */}
             <Link
               to="/wishlist"
@@ -125,8 +192,12 @@ export default function Header() {
             <button
               className="cart-btn"
               type="button"
-              onClick={() => setCartOpen(true)}
+              onClick={() => {
+                closeMenu();
+                setCartOpen(true);
+              }}
               aria-label="السلة"
+              aria-haspopup="dialog"
             >
               🛒
 
@@ -142,7 +213,9 @@ export default function Header() {
               onClick={() =>
                 setMenuOpen((open) => !open)
               }
-              aria-label="فتح القائمة"
+              aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"}
+              aria-expanded={menuOpen}
+              aria-controls="primary-navigation"
             >
               {menuOpen ? "✕" : "☰"}
             </button>

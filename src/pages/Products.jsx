@@ -3,9 +3,11 @@ import { useSearchParams } from "react-router-dom";
 
 import ProductCard from "../components/ProductCard";
 import { groupProducts } from "../utils/productGroups";
+import { useStoreSettings } from "../context/StoreSettingsContext";
 import "./products-styles.css";
 
 export default function Products() {
+  useStoreSettings();
   const [searchParams] = useSearchParams();
 
   const initialSearch =
@@ -23,10 +25,7 @@ export default function Products() {
     ============================================================
   */
 
-  const groupedProducts = useMemo(
-    () => groupProducts(),
-    []
-  );
+  const groupedProducts = groupProducts();
 
   /*
     ============================================================

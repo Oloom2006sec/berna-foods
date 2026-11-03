@@ -1,0 +1,68 @@
+export const productOffers = [
+  { productName: "عسل بالمكسرات", discountPercent: 20 },
+  { productName: "عسل الموالح", discountPercent: 15 },
+  { productName: "عسل البرسيم", discountPercent: 10 },
+  { productName: "زيت الزيتون", discountPercent: 10 },
+  { productName: "طحينة", discountPercent: 10 },
+  { productName: "خل التفاح", discountPercent: 10 },
+  { productName: "عسل أعشاب جبلية", discountPercent: 15 },
+  { productName: "عسل حبة البركة", discountPercent: 15 },
+  { productName: "عسل سدر مصري", discountPercent: 20 },
+  { productName: "عسل بردقوش", discountPercent: 15 },
+  { productName: "عسل أعشاب برية", discountPercent: 15 },
+  { productName: "مختوم فلسطيني", discountPercent: 10 },
+  { productName: "شمع عسل", discountPercent: 10 },
+  { productName: "عسل أسود", discountPercent: 15 },
+  { productName: "دبس الرمان", discountPercent: 10 },
+  { productName: "صويا صوص", discountPercent: 10 },
+];
+
+export const campaign = {
+  enabled: true,
+  name: "الجمعة البيضاء",
+  badgeLabel: "⚡ فلاش سيل",
+  offerLabel: "عروض بيرنا",
+};
+
+export const homePromotions = [
+  {
+    eyebrow: `⚡ فلاش سيل • ${campaign.name}`,
+    title: "عروض خاطفة على منتجات بيرنا",
+    description: "اختار من عروض بيرنا على كل المنتجات.",
+    offerBadge: campaign.offerLabel,
+    campaign: true,
+    href: "#offers",
+    cta: "اكتشف منتجات بيرنا",
+    tone: "white-friday",
+  },
+  {
+    eyebrow: "عسل بيرنا",
+    title: "اختار طعم العسل اللي بتحبه",
+    description: "تعرّف على أصناف العسل وأوزانها المتاحة.",
+    image: "/images/products/berna_honey_albarsim_new_jar.webp",
+    alt: "عسل البرسيم من بيرنا",
+    href: "#honey",
+    cta: "شاهد أنواع العسل",
+    tone: "honey",
+  },
+  {
+    eyebrow: "اختيارات للمائدة",
+    title: "لمسات بسيطة لوصفاتك",
+    description: "منتجات بيرنا الغذائية متاحة ضمن اختياراتنا.",
+    image: "/images/products/berna_tahini_realistic_jar.webp",
+    alt: "طحينة بيرنا",
+    href: "#pantry",
+    cta: "تصفّح منتجات المائدة",
+    tone: "pantry",
+  },
+  {
+    eyebrow: "عسل ومكسرات",
+    title: "اختيار مميز من بيرنا",
+    description: "اكتشف عسل بيرنا بالمكسرات وتفاصيل المنتج.",
+    image: "/images/products/berna_honey_nuts_new_jar.webp",
+    alt: "عسل بيرنا بالمكسرات",
+    href: "#blends",
+    cta: "اكتشف الاختيار",
+    tone: "nuts",
+  },
+].filter((slide) => !slide.campaign || campaign.enabled);

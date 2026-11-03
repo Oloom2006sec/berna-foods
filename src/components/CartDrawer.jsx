@@ -18,7 +18,7 @@ export default function CartDrawer({ onClose }) {
   }
 
   function getItemKey(item) {
-    return item.sku || item.id;
+    return item.cartLineId || item.sku || item.id;
   }
 
   /*
@@ -34,11 +34,25 @@ export default function CartDrawer({ onClose }) {
 
     const items = cart
       .map((item) => {
+        if (item.bundleOfferId) {
+          const components = (item.bundleItems || [])
+            .map(
+              (component) =>
+                `  - ${component.name} ${component.weight} × ${component.quantity}`
+            )
+            .join("\n");
+          return `• باقة ${item.bundleName} × ${item.quantity} = ${formatPrice(item.price * item.quantity)} ج.م${components ? `\n${components}` : ""}`;
+        }
+
         const variantText = [
           item.weight,
         ]
           .filter(Boolean)
           .join(" — ");
+
+        const promotionText = item.promotionLabel
+          ? ` — ${item.promotionLabel} ${item.discountPercent}% (وفرت ${formatPrice((item.originalPrice - item.price) * item.quantity)} ج.م)`
+          : "";
 
         return `• ${item.name}${
           variantText
@@ -47,7 +61,7 @@ export default function CartDrawer({ onClose }) {
         } × ${item.quantity} = ${formatPrice(
           Number(item.price) *
           Number(item.quantity)
-        )} ج.م`;
+        )} ج.م${promotionText}`;
       })
       .join("\n");
 
@@ -77,12 +91,16 @@ ${items}
     <div
       className="cart-overlay"
       onClick={onClose}
+      role="presentation"
     >
       <aside
         className="cart-drawer"
         onClick={(event) =>
           event.stopPropagation()
         }
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cart-drawer-title"
       >
 
         {/* ==================================================
@@ -91,7 +109,7 @@ ${items}
 
         <div className="cart-header">
 
-          <h2>
+          <h2 id="cart-drawer-title">
             🛒 السلة
           </h2>
 
@@ -125,6 +143,14 @@ ${items}
               اختار المنتجات اللي تحبها
               ونبدأ طلبك.
             </p>
+
+            <Link
+              to="/products"
+              className="empty-cart-link"
+              onClick={onClose}
+            >
+              تصفّح المنتجات
+            </Link>
 
           </div>
 
@@ -160,7 +186,19 @@ ${items}
                     {/* PRODUCT IMAGE */}
 
                     <div className="cart-item-icon">
-                      {item.image ? (
+                      {item.bundleItems?.length ? (
+                        <div className="cart-bundle-thumbnails">
+                          {item.bundleItems.slice(0, 4).map((component) => (
+                            <span key={component.sku}>
+                              {component.image ? (
+                                <img src={component.image} alt="" loading="lazy" />
+                              ) : (
+                                "🍯"
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                      ) : item.image ? (
                         <img
                           src={item.image}
                           alt={item.name}
@@ -185,23 +223,41 @@ ${items}
                         {item.name}
                       </strong>
 
-                      {/* WEIGHT */}
+                      {/* VARIANT / BUNDLE COMPONENTS */}
 
-                      {item.weight && (
+                      {!item.bundleOfferId && item.weight && (
                         <small>
                           {item.weight}
                         </small>
+                      )}
+                      {item.bundleItems?.length > 0 && (
+                        <ul className="cart-bundle-components">
+                          {item.bundleItems.map((component) => (
+                            <li key={component.sku}>
+                              {component.name} · {component.weight} ×{" "}
+                              {component.quantity}
+                            </li>
+                          ))}
+                        </ul>
                       )}
 
                       {/* UNIT PRICE */}
 
                       <small>
-                        سعر الوحدة:{" "}
+                        {item.bundleOfferId ? "سعر العرض: " : "سعر الوحدة: "}
+                        {item.originalPrice > item.price && (
+                          <del>{formatPrice(item.originalPrice)} ج.م </del>
+                        )}
                         {formatPrice(
                           item.price
                         )}{" "}
                         ج.م
                       </small>
+                      {item.promotionLabel && (
+                        <small className="cart-promotion-label">
+                          {item.promotionLabel} ({item.discountPercent}%)
+                        </small>
+                      )}
 
                       {/* TOTAL */}
 
