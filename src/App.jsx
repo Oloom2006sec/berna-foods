@@ -148,14 +148,22 @@ function HomePage() {
       ?.products || honeyProducts;
   const [activePromoSlide, setActivePromoSlide] = useState(0);
   const promoSlide = homePromotions[activePromoSlide];
-  const productReviews = groupedProducts
-    .flatMap((product) =>
-      (getProductDetails(product.name)?.reviews || []).map((review) => ({
-        ...review,
-        productName: product.name,
-      }))
-    );
-  const customerReviews = productReviews.slice(0, 3);
+  const featuredReviewProductNames = [
+    "عسل أعشاب جبلية",
+    "زيت الزيتون",
+    "دبس الرمان",
+  ];
+  const productReviews = groupedProducts.flatMap((product) =>
+    (getProductDetails(product.name)?.reviews || []).map((review) => ({
+      ...review,
+      productName: product.name,
+    }))
+  );
+  const customerReviews = featuredReviewProductNames
+    .map((productName) =>
+      productReviews.find((review) => review.productName === productName)
+    )
+    .filter(Boolean);
   const averageReviewRating = productReviews.length
     ? (
         productReviews.reduce(
@@ -336,7 +344,7 @@ function HomePage() {
             <div className="section-title">
               <span className="eyebrow">من بيانات بيرنا</span>
               <h2 id="home-reviews-title">آراء عن منتجاتنا</h2>
-              <p>نماذج من الآراء الموجودة في تفاصيل المنتجات.</p>
+              <p>نماذج من آراء العملاء عن منتجات متنوعة من بيرنا.</p>
             </div>
 
             <div className="home-reviews-grid">
