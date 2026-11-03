@@ -1,6 +1,6 @@
 import { supabase } from "../lib/supabase";
 
-const DEPOSIT_PERCENTAGE = 0.20;
+const DEPOSIT_PERCENTAGE = 0.50;
 
 /*
   ==========================================
@@ -224,7 +224,7 @@ export async function createOrder(orderData) {
           "deposit_required",
 
         payment_method:
-          "جدية حجز 20% + 80% عند الاستلام",
+          "جدية حجز 50% عند التحويل + 50% عند الاستلام",
 
         /*
           ==============================

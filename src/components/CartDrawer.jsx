@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 
 import { useCart } from "../context/CartContext";
-import { STORE_CONFIG } from "../config/store";
 
 export default function CartDrawer({ onClose }) {
   const {
@@ -19,72 +18,6 @@ export default function CartDrawer({ onClose }) {
 
   function getItemKey(item) {
     return item.cartLineId || item.sku || item.id;
-  }
-
-  /*
-  ============================================================
-  WHATSAPP
-  ============================================================
-  */
-
-  function sendToWhatsApp() {
-    if (!cart.length) return;
-
-    const phone = STORE_CONFIG.whatsapp;
-
-    const items = cart
-      .map((item) => {
-        if (item.bundleOfferId) {
-          const components = (item.bundleItems || [])
-            .map(
-              (component) =>
-                `  - ${component.name} ${component.weight} × ${component.quantity}`
-            )
-            .join("\n");
-          return `• باقة ${item.bundleName} × ${item.quantity} = ${formatPrice(item.price * item.quantity)} ج.م${components ? `\n${components}` : ""}`;
-        }
-
-        const variantText = [
-          item.weight,
-        ]
-          .filter(Boolean)
-          .join(" — ");
-
-        const promotionText = item.promotionLabel
-          ? ` — ${item.promotionLabel} ${item.discountPercent}% (وفرت ${formatPrice((item.originalPrice - item.price) * item.quantity)} ج.م)`
-          : "";
-
-        return `• ${item.name}${
-          variantText
-            ? ` - ${variantText}`
-            : ""
-        } × ${item.quantity} = ${formatPrice(
-          Number(item.price) *
-          Number(item.quantity)
-        )} ج.م${promotionText}`;
-      })
-      .join("\n");
-
-    const message = `أهلاً بيرنا فوودز ❤️
-
-أريد عمل طلب:
-
-${items}
-
-الإجمالي: ${formatPrice(
-      cartTotal
-    )} ج.م
-
-برجاء التواصل معي لتأكيد الطلب.`;
-
-    const url =
-      `https://wa.me/${phone}?text=` +
-      encodeURIComponent(message);
-
-    window.open(
-      url,
-      "_blank"
-    );
   }
 
   return (
@@ -345,16 +278,6 @@ ${items}
                 </strong>
 
               </div>
-
-              {/* WHATSAPP */}
-
-              <button
-                type="button"
-                className="whatsapp-order"
-                onClick={sendToWhatsApp}
-              >
-                💬 طلب سريع عبر WhatsApp
-              </button>
 
               {/* CHECKOUT */}
 

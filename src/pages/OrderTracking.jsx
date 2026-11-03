@@ -610,9 +610,9 @@ function getVariantText(item) {
                         "13px",
                     }}
                   >
-                    إيصال التحويل المرسل لم يتم اعتماده.
+                    تعذر مطابقة الإيصال مع المبلغ الوارد.
                     <br />
-                    يمكنك رفع إيصال تحويل جديد للمراجعة.
+                    سنتواصل معك لإعادة التحويل، ثم يمكنك رفع الإيصال الجديد هنا.
                   </p>
 
                   {/* FILE INPUT */}
@@ -880,7 +880,7 @@ function getVariantText(item) {
                         "7px",
                     }}
                   >
-                    جدية الحجز المطلوبة 20%
+                    جدية الحجز المطلوبة
                   </strong>
 
                   <p
@@ -899,6 +899,16 @@ function getVariantText(item) {
                     amountLabel={`${formatPrice(
                       order.deposit_amount
                     )} ج.م`}
+                    orderNumber={order.order_number}
+                    depositPercent={
+                      order.total > 0
+                        ? Math.round(
+                            (Number(order.deposit_amount) /
+                              Number(order.total)) *
+                              100
+                          )
+                        : 50
+                    }
                   />
 
                   {/* FILE INPUT */}
@@ -1182,7 +1192,7 @@ function getVariantText(item) {
                 <div className="tracking-total">
 
                   <span>
-                    جدية الحجز المطلوبة 20%
+                    جدية الحجز المطلوبة
                   </span>
 
                   <strong>
@@ -1212,7 +1222,7 @@ function getVariantText(item) {
                 <div className="tracking-total">
 
                   <span>
-                    المتبقي عند الاستلام 80%
+                    المتبقي عند الاستلام
                   </span>
 
                   <strong>
