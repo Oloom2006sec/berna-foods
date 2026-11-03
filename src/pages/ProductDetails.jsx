@@ -26,7 +26,7 @@ export default function ProductDetails() {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [id]);
 
-  const group = getProductGroupByParam(id);
+  const group = useMemo(() => getProductGroupByParam(id), [id]);
 
   const { addToCart } = useCart();
 
