@@ -17,9 +17,9 @@ const statusLabels = {
 };
 
 const paymentLabels = {
-  deposit_required: "المقدم مطلوب",
-  deposit_pending: "في انتظار مراجعة المقدم",
-  deposit_paid: "المقدم مدفوع",
+  deposit_required: "جدية الحجز مطلوبة",
+  deposit_pending: "في انتظار مراجعة جدية الحجز",
+  deposit_paid: "تم دفع جدية الحجز",
   fully_paid: "مدفوع بالكامل",
 };
 
@@ -80,6 +80,7 @@ export default function AdminOrders() {
         order.order_number,
         order.customer_name,
         order.customer_phone,
+        order.customer_phone_secondary,
         order.governorate,
         order.area,
         order.address,
@@ -220,7 +221,7 @@ export default function AdminOrders() {
     );
 
     const confirmed = window.confirm(
-      `هل تؤكد استلام مبلغ المقدم ${formatPrice(
+      `هل تؤكد استلام مبلغ جدية الحجز ${formatPrice(
         depositAmount
       )} ج.م للطلب ${order.order_number}؟`
     );
@@ -266,7 +267,7 @@ export default function AdminOrders() {
 
       alert(
         error?.message ||
-          "تعذر تحديث حالة المقدم."
+          "تعذر تحديث حالة جدية الحجز."
       );
     } finally {
       setProcessingOrder("");
@@ -560,15 +561,15 @@ export default function AdminOrders() {
               </option>
 
               <option value="deposit_required">
-                المقدم مطلوب
+                جدية الحجز مطلوبة
               </option>
 
               <option value="deposit_pending">
-                في انتظار مراجعة المقدم
+                في انتظار مراجعة جدية الحجز
               </option>
 
               <option value="deposit_paid">
-                المقدم مدفوع
+                تم دفع جدية الحجز
               </option>
 
               <option value="fully_paid">
@@ -797,6 +798,12 @@ export default function AdminOrders() {
                           "-"}
                       </div>
 
+                      {order.customer_phone_secondary && (
+                        <div className="customer-info-line">
+                          📱 {order.customer_phone_secondary}
+                        </div>
+                      )}
+
                       <div className="customer-info-line">
                         📍{" "}
                         {order.governorate ||
@@ -927,7 +934,7 @@ export default function AdminOrders() {
 
                       <div className="payment-line">
                         <span>
-                          المقدم المطلوب
+                          جدية الحجز المطلوبة
                         </span>
 
                         <strong>
@@ -940,7 +947,7 @@ export default function AdminOrders() {
 
                       <div className="payment-line">
                         <span>
-                          المقدم المدفوع
+                          جدية الحجز المدفوعة
                         </span>
 
                         <strong>
@@ -975,7 +982,7 @@ export default function AdminOrders() {
                             order.payment_status
                           ] ||
                             order.payment_status ||
-                            "المقدم مطلوب"}
+                            "جدية الحجز مطلوبة"}
                         </b>
 
                       </div>
@@ -1060,7 +1067,7 @@ export default function AdminOrders() {
                             >
                               {isProcessing
                                 ? "جاري المعالجة..."
-                                : `✓ اعتماد المقدم ${formatPrice(
+                                : `✓ اعتماد جدية الحجز ${formatPrice(
                                     order.deposit_amount
                                   )} ج.م`}
                             </button>
@@ -1112,7 +1119,7 @@ export default function AdminOrders() {
                           </strong>
 
                           <span>
-                            الطلب في انتظار تحويل المقدم من العميل.
+                            الطلب في انتظار تحويل جدية الحجز من العميل.
                           </span>
 
                         </div>
@@ -1131,7 +1138,7 @@ export default function AdminOrders() {
                         >
                           {isProcessing
                             ? "جاري المعالجة..."
-                            : `✓ تأكيد استلام المقدم ${formatPrice(
+                            : `✓ تأكيد استلام جدية الحجز ${formatPrice(
                                 order.deposit_amount
                               )} ج.م`}
                         </button>

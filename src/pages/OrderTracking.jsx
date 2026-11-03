@@ -13,6 +13,7 @@ import {
   getOrder,
   uploadOrderReceipt,
 } from "../services/orderService";
+import PaymentInstructions from "../components/PaymentInstructions";
 
 const statusSteps = [
   {
@@ -49,8 +50,8 @@ const statusLabels = {
 };
 
 const paymentLabels = {
-  deposit_required: "المقدم مطلوب",
-  deposit_paid: "المقدم مدفوع",
+  deposit_required: "جدية الحجز مطلوبة",
+  deposit_paid: "تم دفع جدية الحجز",
   fully_paid: "مدفوع بالكامل",
 };
 
@@ -813,7 +814,7 @@ function getVariantText(item) {
                         "7px",
                     }}
                   >
-                    تم تأكيد استلام المقدم
+                    تم تأكيد استلام جدية الحجز
                   </strong>
 
                   <p
@@ -879,7 +880,7 @@ function getVariantText(item) {
                         "7px",
                     }}
                   >
-                    المقدم المطلوب 20%
+                    جدية الحجز المطلوبة 20%
                   </strong>
 
                   <p
@@ -891,8 +892,14 @@ function getVariantText(item) {
                         "13px",
                     }}
                   >
-                    برجاء تحويل قيمة المقدم وإرسال إيصال التحويل.
+                    برجاء تحويل قيمة جدية الحجز وإرسال إيصال التحويل.
                   </p>
+
+                  <PaymentInstructions
+                    amountLabel={`${formatPrice(
+                      order.deposit_amount
+                    )} ج.م`}
+                  />
 
                   {/* FILE INPUT */}
 
@@ -1175,7 +1182,7 @@ function getVariantText(item) {
                 <div className="tracking-total">
 
                   <span>
-                    المقدم المطلوب 20%
+                    جدية الحجز المطلوبة 20%
                   </span>
 
                   <strong>
@@ -1190,7 +1197,7 @@ function getVariantText(item) {
                 <div className="tracking-total">
 
                   <span>
-                    المقدم المدفوع
+                    جدية الحجز المدفوعة
                   </span>
 
                   <strong>
@@ -1226,7 +1233,7 @@ function getVariantText(item) {
                       paymentLabels[
                         order.payment_status
                       ] ||
-                      "المقدم مطلوب"
+                      "جدية الحجز مطلوبة"
                     }
                   </strong>
 
