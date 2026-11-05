@@ -37,6 +37,45 @@ import {
 
 
 const DEPOSIT_PERCENTAGE = 0.50;
+const CUSTOMER_DETAILS_STORAGE_KEY = "berna-customer-details";
+const EMPTY_CUSTOMER_DETAILS = {
+  name: "",
+  phone: "",
+  phoneSecondary: "",
+  whatsappPhone: "",
+  email: "",
+  governorate: "",
+  area: "",
+  address: "",
+  notes: "",
+};
+
+function readSavedCustomerDetails() {
+  try {
+    const savedDetails = JSON.parse(
+      localStorage.getItem(CUSTOMER_DETAILS_STORAGE_KEY) || "{}"
+    );
+    if (
+      !savedDetails ||
+      typeof savedDetails !== "object" ||
+      Array.isArray(savedDetails)
+    ) {
+      return { ...EMPTY_CUSTOMER_DETAILS };
+    }
+
+    return Object.fromEntries(
+      Object.keys(EMPTY_CUSTOMER_DETAILS).map((field) => [
+        field,
+        typeof savedDetails[field] === "string"
+          ? savedDetails[field]
+          : "",
+      ])
+    );
+  } catch (error) {
+    console.error("Read saved customer details error:", error);
+    return { ...EMPTY_CUSTOMER_DETAILS };
+  }
+}
 
 
 
@@ -60,20 +99,24 @@ export default function Checkout() {
 
 
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(readSavedCustomerDetails);
+  const [customerDetailsSaveError, setCustomerDetailsSaveError] =
+    useState("");
 
-    name: "",
-    phone: "",
-    phoneSecondary: "",
-    governorate: "",
-
-    area: "",
-
-    address: "",
-
-    notes: "",
-
-  });
+  function saveCustomerDetails(details) {
+    try {
+      localStorage.setItem(
+        CUSTOMER_DETAILS_STORAGE_KEY,
+        JSON.stringify(details)
+      );
+      setCustomerDetailsSaveError("");
+    } catch (error) {
+      console.error("Save customer details error:", error);
+      setCustomerDetailsSaveError(
+        "تعذر حفظ بياناتك على هذا الجهاز."
+      );
+    }
+  }
 
 
 
@@ -322,24 +365,6 @@ export default function Checkout() {
 
 
 
-  function formatWeight(
-
-    value
-
-  ) {
-
-    return Number(
-
-      value || 0
-
-    ).toFixed(2);
-
-  }
-
-
-
-
-
   /*
 
    * ==========================================
@@ -562,45 +587,13 @@ export default function Checkout() {
 
 
 
-    setForm(
+    const updatedForm =
+      name === "governorate"
+        ? { ...form, governorate: value, area: "" }
+        : { ...form, [name]: value };
 
-      (current) => {
-
-        if (
-
-          name ===
-
-          "governorate"
-
-        ) {
-
-          return {
-
-            ...current,
-
-            governorate:
-
-              value,
-
-            area: "",
-
-          };
-
-        }
-
-
-
-        return {
-
-          ...current,
-
-          [name]: value,
-
-        };
-
-      }
-
-    );
+    setForm(updatedForm);
+    saveCustomerDetails(updatedForm);
 
 
 
@@ -723,9 +716,7 @@ export default function Checkout() {
 
 
     if (
-
       !shippingData ||
-
       shipping === null
 
     ) {
@@ -739,10 +730,20 @@ export default function Checkout() {
 
 
       return;
-
     }
 
-
+    let whatsappWindow = null;
+    try {
+      whatsappWindow = window.open("about:blank", "_blank");
+      if (whatsappWindow) {
+        whatsappWindow.document.title = "بيرنا فوودز";
+        whatsappWindow.document.body.textContent =
+          "جارٍ تجهيز تفاصيل طلبك للانتقال إلى واتساب...";
+        whatsappWindow.opener = null;
+      }
+    } catch (error) {
+      console.error("Open WhatsApp tab error:", error);
+    }
 
     setIsSubmitting(true);
 
@@ -1010,13 +1011,17 @@ export default function Checkout() {
 
       setOrderNumber(
 
-        createdOrder.orderNumber
-
       );
 
-
-
       setSubmitted(true);
+
+      if (whatsappWindow) {
+        try {
+          sendWhatsApp(createdOrder, whatsappWindow);
+        } catch (error) {
+          console.error("Prepare order WhatsApp message error:", error);
+        }
+      }
 
 
 
@@ -1033,6 +1038,9 @@ export default function Checkout() {
       clearCart();
 
     } catch (error) {
+      if (whatsappWindow && !whatsappWindow.closed) {
+        whatsappWindow.close();
+      }
 
       console.error(
 
@@ -1080,17 +1088,18 @@ export default function Checkout() {
 
 
 
-  function sendWhatsApp() {
+  function sendWhatsApp(
+    targetOrder = submittedOrder,
+    whatsappWindow = null
+  ) {
 
     if (
-
-      !submittedOrder
-
+      !targetOrder
     ) {
-
       return;
-
     }
+
+    const submittedOrder = targetOrder;
 
 
 
@@ -1198,6 +1207,10 @@ ${submittedOrder.customer.phone}
 
 ${submittedOrder.customer.phoneSecondary}
 
+البريد الإلكتروني:
+
+${submittedOrder.customer.email || "غير مضاف"}
+
 
 
 المحافظة:
@@ -1215,16 +1228,6 @@ ${submittedOrder.customer.area}
 العنوان:
 
 ${submittedOrder.customer.address}
-
-
-
-الوزن الإجمالي:
-
-${formatWeight(
-
-  submittedOrder.totalWeightKg
-
-)} كجم
 
 
 
@@ -1330,7 +1333,17 @@ ${
 
 
 
-برجاء إرسال إيصال تحويل جدية الحجز بعد إتمام التحويل.
+برجاء تحويل قيمة جدية الحجز ثم رفع صورة الإيصال من خلال رابط تتبع الطلب أدناه.
+
+بعد اعتماد جدية الحجز سيتم تأكيد الطلب وشحنه خلال يومي عمل من تاريخ الاعتماد.
+
+تتبع الطلب ورفع الإيصال:
+
+${window.location.origin}/track-order?order=${encodeURIComponent(
+  submittedOrder.orderNumber
+)}
+
+في حالة إرجاع الطلب يتحمل العميل قيمة الشحن.
 
 
 
@@ -1350,15 +1363,18 @@ ${
 
 
 
-    window.open(
+    if (whatsappWindow) {
+      try {
+        if (!whatsappWindow.closed) {
+          whatsappWindow.location.href = whatsappUrl;
+        }
+      } catch (error) {
+        console.error("Navigate to WhatsApp error:", error);
+      }
+      return;
+    }
 
-      whatsappUrl,
-
-      "_blank",
-
-      "noopener,noreferrer"
-
-    );
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
 
   }
 
@@ -1423,15 +1439,11 @@ ${
 
 
             <p>
-
               تم تسجيل طلبك بنجاح.
-
               <br />
-
-              الخطوة التالية هي تحويل قيمة
-
-              جدية الحجز وإرسال إيصال التحويل.
-
+              حوّل جدية الحجز وارفع الإيصال عبر رابط التتبع.
+              <br />
+              بعد اعتماد الدفع سيتم شحن الطلب خلال يومي عمل.
             </p>
 
 
@@ -1513,30 +1525,6 @@ ${
                       STORE_CONFIG.currency
 
                     }
-
-                  </strong>
-
-                </div>
-
-
-
-                <div className="payment-summary-row">
-
-                  <span>
-
-                    وزن الشحنة
-
-                  </span>
-
-
-
-                  <strong>
-
-                    {formatWeight(
-
-                      submittedOrder.totalWeightKg
-
-                    )} كجم
 
                   </strong>
 
@@ -1690,13 +1678,11 @@ ${
             <p className="success-note">
 
               احتفظ برقم الطلب
-
               <br />
-
               لاستخدامه في متابعة حالة الطلب
-
               وإرسال إيصال التحويل.
-
+              <br />
+              إذا لم يفتح واتساب تلقائيًا، اضغط زر إرسال تفاصيل الطلب.
             </p>
 
 
@@ -1933,9 +1919,15 @@ ${
 
                   <p>
 
-                    البيانات المطلوبة لتأكيد الطلب.
+                    بياناتك تُحفظ على هذا الجهاز لتسهيل طلبك القادم.
 
                   </p>
+
+                  {customerDetailsSaveError && (
+                    <p role="alert">
+                      {customerDetailsSaveError}
+                    </p>
+                  )}
 
                 </div>
 
@@ -2047,6 +2039,38 @@ ${
                     placeholder="01xxxxxxxxx"
                   />
 
+                </div>
+
+                <div className="form-field">
+                  <label>
+                    رقم واتساب لإرسال تأكيد الطلب (اختياري)
+                  </label>
+                  <input
+                    type="tel"
+                    name="whatsappPhone"
+                    value={form.whatsappPhone}
+                    onChange={handleChange}
+                    placeholder="اكتب رقم واتساب مع كود الدولة"
+                    autoComplete="tel"
+                  />
+                  <small>
+                    لن نستخدم رقم الموبايل الأساسي لرسائل واتساب؛ اكتب رقم واتساب هنا
+                    إذا أردت استلام تأكيد الدفع عليه.
+                  </small>
+                </div>
+
+                <div className="form-field">
+                  <label>
+                    البريد الإلكتروني (اختياري)
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="name@example.com"
+                    autoComplete="email"
+                  />
                 </div>
 
               </div>
@@ -2405,310 +2429,6 @@ ${
 
 
 
-            {/* SHIPPING */}
-
-
-
-            <section className="checkout-card">
-
-
-
-              <div className="checkout-card-heading">
-
-
-
-                <span>
-
-                  03
-
-                </span>
-
-
-
-                <div>
-
-                  <h2>
-
-                    تكلفة الشحن
-
-                  </h2>
-
-
-
-                  <p>
-
-                    يتم حساب تكلفة الشحن تلقائيًا
-
-                    حسب المنطقة ووزن الشحنة.
-
-                  </p>
-
-                </div>
-
-
-
-              </div>
-
-
-
-
-
-              <div className="shipping-checkout-box">
-
-
-
-                {!form.governorate && (
-
-                  <>
-
-                    <div className="shipping-icon">
-
-                      🚚
-
-                    </div>
-
-
-
-                    <div>
-
-                      <strong>
-
-                        اختر المحافظة أولًا
-
-                      </strong>
-
-
-
-                      <small>
-
-                        سيتم حساب الشحن حسب وزن
-
-                        المنتجات والمنطقة.
-
-                      </small>
-
-                    </div>
-
-                  </>
-
-                )}
-
-
-
-
-
-                {form.governorate &&
-
-                  !form.area && (
-
-                    <>
-
-                      <div className="shipping-icon">
-
-                        📍
-
-                      </div>
-
-
-
-                      <div>
-
-                        <strong>
-
-                          اختر المنطقة
-
-                        </strong>
-
-
-
-                        <small>
-
-                          اختر المركز / المدينة
-
-                          لحساب تكلفة الشحن.
-
-                        </small>
-
-                      </div>
-
-                    </>
-
-                  )}
-
-
-
-
-
-                {isLoadingShipping && (
-
-                  <>
-
-                    <div className="shipping-icon">
-
-                      🚚
-
-                    </div>
-
-
-
-                    <div>
-
-                      <strong>
-
-                        جاري حساب تكلفة الشحن...
-
-                      </strong>
-
-
-
-                      <small>
-
-                        يتم حساب السعر حسب وزن
-
-                        الشحنة.
-
-                      </small>
-
-                    </div>
-
-                  </>
-
-                )}
-
-
-
-
-
-                {!isLoadingShipping &&
-
-                  shippingData && (
-
-                    <>
-
-                      <div className="shipping-icon">
-
-                        🚚
-
-                      </div>
-
-
-
-                      <div>
-
-                        <strong>
-
-                          {formatPrice(
-
-                            shippingData.shippingPrice
-
-                          )}{" "}
-
-                          {
-
-                            STORE_CONFIG.currency
-
-                          }
-
-                        </strong>
-
-
-
-                        <small>
-
-                          وزن الشحنة:{" "}
-
-                          {formatWeight(
-
-                            totalWeightKg
-
-                          )}{" "}
-
-                          كجم
-
-                          {" — "}
-
-                          {shippingData.zoneName
-
-                            ? `منطقة الشحن: ${shippingData.zoneName}`
-
-                            : "تم تحديد تكلفة الشحن"}
-
-                        </small>
-
-                      </div>
-
-
-
-                      <div className="shipping-selected">
-
-                        ✓
-
-                      </div>
-
-                    </>
-
-                  )}
-
-
-
-
-
-                {!isLoadingShipping &&
-
-                  !shippingData &&
-
-                  form.area &&
-
-                  shippingError && (
-
-                    <>
-
-                      <div className="shipping-icon">
-
-                        ⚠️
-
-                      </div>
-
-
-
-                      <div>
-
-                        <strong>
-
-                          تعذر تحديد الشحن
-
-                        </strong>
-
-
-
-                        <small>
-
-                          {
-
-                            shippingError
-
-                          }
-
-                        </small>
-
-                      </div>
-
-                    </>
-
-                  )}
-
-
-
-              </div>
-
-
-
-            </section>
-
-
-
-
-
             {/* PAYMENT */}
 
 
@@ -2723,7 +2443,7 @@ ${
 
                 <span>
 
-                  04
+                  03
 
                 </span>
 
@@ -3276,34 +2996,6 @@ return (
                     </strong>
                   </div>
                 )}
-
-
-
-
-                <div>
-
-                  <span>
-
-                    وزن الشحنة
-
-                  </span>
-
-
-
-                  <strong>
-
-                    {formatWeight(
-
-                      totalWeightKg
-
-                    )}{" "}
-
-                    كجم
-
-                  </strong>
-
-                </div>
-
 
 
 

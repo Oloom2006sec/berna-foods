@@ -166,6 +166,12 @@ export async function createOrder(orderData) {
         customer_phone_secondary:
           orderData.customer?.phoneSecondary || "",
 
+        customer_whatsapp_phone:
+          orderData.customer?.whatsappPhone || "",
+
+        customer_email:
+          orderData.customer?.email || "",
+
         governorate:
           orderData.customer?.governorate || "",
 

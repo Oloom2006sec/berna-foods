@@ -4,6 +4,7 @@ import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { groupProducts } from "../utils/productGroups";
 import BundleCompositionImage from "./BundleCompositionImage";
+import CartAddedActions from "./CartAddedActions";
 import "./bundle-offers.css";
 
 function getLocalDate() {
@@ -60,7 +61,6 @@ export default function BundleOffersSection({ bundles = [] }) {
       addBundleToCart(bundle);
       setAddedBundleId(bundle.id);
       setError("");
-      window.setTimeout(() => setAddedBundleId(""), 1800);
     } catch (addError) {
       console.error("Add bundle to cart error:", addError);
       setError(addError.message || "تعذر إضافة العرض إلى السلة.");
@@ -74,7 +74,6 @@ export default function BundleOffersSection({ bundles = [] }) {
       image: group.image,
     });
     setAddedProductSku(product.sku);
-    window.setTimeout(() => setAddedProductSku(""), 1400);
   }
 
   return (
@@ -184,14 +183,22 @@ export default function BundleOffersSection({ bundles = [] }) {
                             >
                               {favorite ? "♥" : "♡"}
                             </button>
-                            <button
-                              type="button"
-                              aria-label={`إضافة ${product.name} ${product.weight} للسلة`}
-                              onClick={() => handleAddProduct(product, group)}
-                            >
-                              {addedProductSku === product.sku ? "✓" : "+"}
-                            </button>
+                            {addedProductSku !== product.sku && (
+                              <button
+                                type="button"
+                                aria-label={`إضافة ${product.name} ${product.weight} للسلة`}
+                                onClick={() => handleAddProduct(product, group)}
+                              >
+                                +
+                              </button>
+                            )}
                           </span>
+                          {addedProductSku === product.sku && (
+                            <CartAddedActions
+                              className="cart-added-actions-compact"
+                              onContinue={() => setAddedProductSku("")}
+                            />
+                          )}
                         </li>
                       );
                     })}
@@ -200,15 +207,20 @@ export default function BundleOffersSection({ bundles = [] }) {
                     <del>{formatMoney(regularTotal)} ج.م</del>
                     <strong>{formatMoney(bundle.bundlePrice)} ج.م</strong>
                   </div>
-                  <button
-                    type="button"
-                    className="bundle-offer-add"
-                    onClick={() => handleAddBundle(bundle)}
-                  >
-                    {addedBundleId === bundle.id
-                      ? "تمت الإضافة للسلة"
-                      : "أضف العرض للسلة"}
-                  </button>
+                  {addedBundleId === bundle.id ? (
+                    <CartAddedActions
+                      className="cart-added-actions-bundle"
+                      onContinue={() => setAddedBundleId("")}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className="bundle-offer-add"
+                      onClick={() => handleAddBundle(bundle)}
+                    >
+                      أضف العرض للسلة
+                    </button>
+                  )}
                 </div>
               </article>
             );

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import ProductCard from "../components/ProductCard";
+import CartAddedActions from "../components/CartAddedActions";
 
 import { useCart } from "../context/CartContext";
 
@@ -686,21 +687,20 @@ export default function ProductDetails() {
                 الزر أصبح مباشرة بعد الكمية.
                 ================================================== */}
 
-            <button
-              type="button"
-              className="add-product-btn"
-              onClick={
-                handleAddToCart
-              }
-              disabled={
-                !selectedVariant
-              }
-              aria-live="polite"
-            >
-              {added
-                ? "✓ تمت الإضافة للسلة"
-                : "أضف للسلة"}
-            </button>
+            {added ? (
+              <CartAddedActions
+                onContinue={() => setAdded(false)}
+              />
+            ) : (
+              <button
+                type="button"
+                className="add-product-btn"
+                onClick={handleAddToCart}
+                disabled={!selectedVariant}
+              >
+                أضف للسلة
+              </button>
+            )}
 
             {/* ==================================================
                 ORDER INFORMATION
@@ -780,15 +780,6 @@ export default function ProductDetails() {
             {/* ==================================================
                 GO TO CART
                 ================================================== */}
-
-            {added && (
-              <Link
-                to="/checkout"
-                className="product-whatsapp"
-              >
-                إتمام الطلب ←
-              </Link>
-            )}
 
           </div>
 
