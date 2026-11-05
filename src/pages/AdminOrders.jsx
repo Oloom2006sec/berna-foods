@@ -81,6 +81,8 @@ export default function AdminOrders() {
         order.customer_name,
         order.customer_phone,
         order.customer_phone_secondary,
+        order.customer_whatsapp_phone,
+        order.customer_email,
         order.governorate,
         order.area,
         order.address,
@@ -324,6 +326,41 @@ export default function AdminOrders() {
     } finally {
       setProcessingOrder("");
     }
+  }
+
+  function sendPaymentConfirmation(order) {
+    const phone = String(order.customer_whatsapp_phone || "")
+      .replace(/\D/g, "");
+    const whatsappPhone = phone.startsWith("20")
+      ? phone
+      : phone.startsWith("0")
+        ? `2${phone}`
+        : phone.startsWith("1")
+          ? `20${phone}`
+          : phone;
+
+    if (!whatsappPhone) {
+      alert("العميل لم يضف رقم واتساب. تواصل معه عبر رقم الموبايل.");
+      return;
+    }
+
+    const trackingUrl =
+      `${window.location.origin}/track-order?order=` +
+      encodeURIComponent(order.order_number);
+    const message = [
+      `أهلًا ${order.customer_name || ""}،`,
+      `تم اعتماد جدية الحجز وتأكيد طلبك رقم ${order.order_number}.`,
+      "سيتم شحن الطلب خلال يومي عمل من تاريخ اعتماد جدية الحجز.",
+      `تتبع طلبك: ${trackingUrl}`,
+      "في حالة إرجاع الطلب يتحمل العميل قيمة الشحن.",
+      "شكرًا لاختيارك بيرنا فوودز ❤️",
+    ].join("\n\n");
+
+    window.open(
+      `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
   }
 
   // ================= HELPERS =================
@@ -804,6 +841,18 @@ export default function AdminOrders() {
                         </div>
                       )}
 
+                      {order.customer_whatsapp_phone && (
+                        <div className="customer-info-line">
+                          💬 واتساب: {order.customer_whatsapp_phone}
+                        </div>
+                      )}
+
+                      {order.customer_email && (
+                        <div className="customer-info-line">
+                          ✉️ {order.customer_email}
+                        </div>
+                      )}
+
                       <div className="customer-info-line">
                         📍{" "}
                         {order.governorate ||
@@ -1144,6 +1193,27 @@ export default function AdminOrders() {
                         </button>
 
                       </section>
+                    )}
+
+                  {["deposit_paid", "fully_paid"].includes(
+                    order.payment_status
+                  ) &&
+                    order.status !== "cancelled" && (
+                      order.customer_whatsapp_phone ? (
+                        <button
+                          type="button"
+                          className="receipt-approve-btn"
+                          onClick={() =>
+                            sendPaymentConfirmation(order)
+                          }
+                        >
+                          💬 إرسال تأكيد الطلب للعميل عبر WhatsApp
+                        </button>
+                      ) : (
+                        <p className="receipt-pending-message">
+                          لم يضف العميل رقم واتساب؛ تواصل معه على رقم الموبايل المسجل.
+                        </p>
+                      )
                     )}
 
                   {/* ================= TOTAL ================= */}

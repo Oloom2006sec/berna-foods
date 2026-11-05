@@ -4,6 +4,7 @@ import { useCart } from "../context/CartContext";
 import { groupProducts } from "../utils/productGroups";
 import { getPromotionPricing } from "../utils/promotionPricing";
 import BundleCompositionImage from "./BundleCompositionImage";
+import CartAddedActions from "./CartAddedActions";
 
 function getLocalDate() {
   const date = new Date();
@@ -88,13 +89,16 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
 
   const showOffer = (index) => {
     setActiveIndex((index + slides.length) % slides.length);
+    setAddedBundleId("");
+    setAddedProductId("");
+    setIsPaused(false);
   };
 
   function handleAddBundle(bundle) {
     try {
       addBundleToCart(bundle);
       setAddedBundleId(bundle.id);
-      window.setTimeout(() => setAddedBundleId(""), 1800);
+      setIsPaused(true);
     } catch (error) {
       console.error("Add hero bundle to cart error:", error);
     }
@@ -126,7 +130,7 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
           promotion?.discountPercent ?? Number(discountPercent || 0),
       });
       setAddedProductId(product.id);
-      window.setTimeout(() => setAddedProductId(""), 1800);
+      setIsPaused(true);
     } catch (error) {
       console.error("Add hero product to cart error:", error);
     }
@@ -183,6 +187,10 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
                 activeOffer.discountPercent
               )
             }
+            onContinue={() => {
+              setAddedProductId("");
+              setIsPaused(false);
+            }}
           />
         ) : (
           <div className="promo-flash-bundle">
@@ -218,15 +226,23 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
                 </small>
               </span>
             </Link>
-            <button
-              type="button"
-              className="promo-flash-bundle-add"
-              onClick={() => handleAddBundle(bundle)}
-            >
-              {addedBundleId === bundle.id
-                ? "تمت الإضافة للسلة"
-                : "أضف الباقة للسلة"}
-            </button>
+            {addedBundleId === bundle.id ? (
+              <CartAddedActions
+                className="cart-added-actions-promo-bundle"
+                onContinue={() => {
+                  setAddedBundleId("");
+                  setIsPaused(false);
+                }}
+              />
+            ) : (
+              <button
+                type="button"
+                className="promo-flash-bundle-add"
+                onClick={() => handleAddBundle(bundle)}
+              >
+                أضف الباقة للسلة
+              </button>
+            )}
           </div>
         )}
 
@@ -268,7 +284,13 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
   );
 }
 
-function ProductSlide({ product, discountPercent, added, onAdd }) {
+function ProductSlide({
+  product,
+  discountPercent,
+  added,
+  onAdd,
+  onContinue,
+}) {
   const variant = product.customerVariants?.[0] || product.variants?.[0];
   const promotion = variant
     ? getPromotionPricing(product.name, variant.price, variant.minOfferPrice)
@@ -301,13 +323,20 @@ function ProductSlide({ product, discountPercent, added, onAdd }) {
           )}
         </span>
       </Link>
-      <button
-        type="button"
-        className="promo-flash-product-add"
-        onClick={onAdd}
-      >
-        {added ? "تمت الإضافة للسلة" : "أضف للسلة"}
-      </button>
+      {added ? (
+        <CartAddedActions
+          className="cart-added-actions-promo"
+          onContinue={onContinue}
+        />
+      ) : (
+        <button
+          type="button"
+          className="promo-flash-product-add"
+          onClick={onAdd}
+        >
+          أضف للسلة
+        </button>
+      )}
     </div>
   );
 }

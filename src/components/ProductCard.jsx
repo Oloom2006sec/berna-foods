@@ -6,6 +6,7 @@ import { useWishlist } from "../context/WishlistContext";
 import { getProductDetails } from "../data/productDetails";
 import { getPromotionPricing } from "../utils/promotionPricing";
 import { useStoreSettings } from "../context/StoreSettingsContext";
+import CartAddedActions from "./CartAddedActions";
 
 function buildWishlistItem(product) {
   const variants =
@@ -451,20 +452,21 @@ export default function ProductCard({ product }) {
             ADD TO CART
             ================================================== */}
 
-        <button
-          type="button"
-          className={`card-add-to-cart ${
-            added
-              ? "card-add-to-cart-added"
-              : ""
-          }`}
-          onClick={handleAddToCart}
-          disabled={!selectedVariant}
-        >
-          {added
-            ? "✓ تمت الإضافة للسلة"
-            : "أضف للسلة"}
-        </button>
+        {added ? (
+          <CartAddedActions
+            className="cart-added-actions-card"
+            onContinue={() => setAdded(false)}
+          />
+        ) : (
+          <button
+            type="button"
+            className="card-add-to-cart"
+            onClick={handleAddToCart}
+            disabled={!selectedVariant}
+          >
+            أضف للسلة
+          </button>
+        )}
 
       </div>
     </article>

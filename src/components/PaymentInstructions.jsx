@@ -36,7 +36,8 @@ export default function PaymentInstructions({
         </li>
         <li>
           سنراجع الإيصال ونطابقه مع المبلغ الوارد. إذا تم التأكد منه سنؤكد
-          الطلب فورًا، وإذا ظهرت مشكلة سنتواصل معك لإعادة التحويل.
+          الطلب، وسيتم شحنه خلال يومي عمل من اعتماد جدية الحجز. وإذا ظهرت
+          مشكلة سنتواصل معك لإعادة التحويل.
         </li>
       </ol>
 
@@ -67,6 +68,9 @@ export default function PaymentInstructions({
 
       <p className="payment-instructions-note">
         يُدفع المتبقي {remainingPercent}% عند استلام الطلب.
+      </p>
+      <p className="payment-instructions-note">
+        في حالة إرجاع الطلب يتحمل العميل قيمة الشحن.
       </p>
     </section>
   );
