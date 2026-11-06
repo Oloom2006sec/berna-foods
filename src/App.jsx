@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./index.css";
 
 import {
@@ -798,6 +798,23 @@ function ScrollToHash() {
   return null;
 }
 
+function MetaPixelPageView() {
+  const { pathname, search } = useLocation();
+  const lastTrackedPage = useRef("");
+
+  useEffect(() => {
+    const page = `${pathname}${search}`;
+    if (lastTrackedPage.current === page) return;
+
+    lastTrackedPage.current = page;
+    if (typeof window.fbq === "function") {
+      window.fbq("track", "PageView");
+    }
+  }, [pathname, search]);
+
+  return null;
+}
+
 /* =========================================================
    APP
 ========================================================= */
@@ -805,6 +822,7 @@ function ScrollToHash() {
 export default function App() {
   return (
     <BrowserRouter>
+        <MetaPixelPageView />
         <ScrollToHash />
 
         <Routes>
