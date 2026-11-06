@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { trackPurchase } from "../utils/metaPixel";
 
 const DEPOSIT_PERCENTAGE = 0.50;
 
@@ -265,6 +266,8 @@ export async function createOrder(orderData) {
         "تعذر حفظ الطلب في قاعدة البيانات."
     );
   }
+
+  trackPurchase(order);
 
   /*
     ==========================================

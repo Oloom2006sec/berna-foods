@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import ProductCard from "../components/ProductCard";
@@ -15,6 +15,7 @@ import {
 import { getProductDetails } from "../data/productDetails";
 import { getPromotionPricing } from "../utils/promotionPricing";
 import { useStoreSettings } from "../context/StoreSettingsContext";
+import { trackMetaEvent } from "../utils/metaPixel";
 
 import "../variant-styles.css";
 
@@ -34,6 +35,7 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
+  const lastTrackedProduct = useRef("");
 
   /*
     ============================================================
@@ -184,6 +186,31 @@ export default function ProductDetails() {
         selectedVariant.minOfferPrice
       )
     : null;
+
+  useEffect(() => {
+    if (!group || !selectedVariant || lastTrackedProduct.current === group.id) {
+      return;
+    }
+
+    const contentId = selectedVariant.sku || selectedVariant.id;
+    if (!contentId) {
+      return;
+    }
+
+    const value = Number(promotion?.price ?? selectedVariant.price);
+    const tracked = trackMetaEvent("ViewContent", {
+      content_ids: [String(contentId)],
+      content_name: group.name,
+      content_type: "product",
+      ...(Number.isFinite(value) ? { value } : {}),
+      currency: "EGP",
+    });
+
+    if (tracked) {
+      lastTrackedProduct.current = group.id;
+    }
+  }, [group, selectedVariant, promotion]);
+
   /*
     ============================================================
     CHOOSE WEIGHT

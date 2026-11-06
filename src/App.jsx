@@ -33,6 +33,7 @@ import AdminHeader from "./components/AdminHeader";
 import { useStoreSettings } from "./context/StoreSettingsContext";
 import { groupProducts } from "./utils/productGroups";
 import { getProductDetails } from "./data/productDetails";
+import { trackMetaEvent } from "./utils/metaPixel";
 import { homePromotions } from "./data/homePromotions";
 import "./berna-redesign.css";
 
@@ -807,9 +808,7 @@ function MetaPixelPageView() {
     if (lastTrackedPage.current === page) return;
 
     lastTrackedPage.current = page;
-    if (typeof window.fbq === "function") {
-      window.fbq("track", "PageView");
-    }
+    trackMetaEvent("PageView");
   }, [pathname, search]);
 
   return null;

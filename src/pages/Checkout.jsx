@@ -4,6 +4,8 @@ import {
 
   useMemo,
 
+  useRef,
+
   useState,
 
 } from "react";
@@ -23,6 +25,7 @@ import { egyptLocations } from "../data/egyptLocations";
 import PaymentInstructions from "../components/PaymentInstructions";
 
 import { createOrder } from "../services/orderService";
+import { trackMetaEvent } from "../utils/metaPixel";
 
 
 
@@ -96,6 +99,51 @@ export default function Checkout() {
     clearCart,
 
   } = useCart();
+
+  const checkoutStarted = useRef(false);
+
+  useEffect(() => {
+    if (cart.length === 0 || checkoutStarted.current) {
+      return;
+    }
+
+    const contents = cart
+      .map((item) => {
+        const id = item.bundleOfferId || item.sku || item.id;
+        const quantity = Number(item.quantity);
+        const itemPrice = Number(item.price);
+
+        if (
+          !id ||
+          !Number.isFinite(quantity) ||
+          quantity <= 0 ||
+          !Number.isFinite(itemPrice) ||
+          itemPrice < 0
+        ) {
+          return null;
+        }
+
+        return {
+          id: String(id),
+          quantity,
+          item_price: itemPrice,
+        };
+      })
+      .filter(Boolean);
+
+    if (contents.length === 0) {
+      return;
+    }
+
+    checkoutStarted.current = trackMetaEvent("InitiateCheckout", {
+      value: cartTotal,
+      currency: "EGP",
+      content_ids: contents.map((item) => item.id),
+      contents,
+      content_type: "product",
+      num_items: contents.reduce((total, item) => total + item.quantity, 0),
+    });
+  }, [cart, cartTotal]);
 
 
 

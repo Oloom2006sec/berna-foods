@@ -9,6 +9,7 @@ import { getPromotionPricing } from "../utils/promotionPricing";
 import { products } from "../data/products";
 import { groupProducts } from "../utils/productGroups";
 import { useStoreSettings } from "./StoreSettingsContext";
+import { trackCartAddition } from "../utils/metaPixel";
 
 const CartContext = createContext(null);
 
@@ -254,6 +255,9 @@ export function CartProvider({ children }) {
 
       return [...current, item];
     });
+
+    trackCartAddition(item);
+    return item;
   }
 
   function addBundleToCart(bundle) {
@@ -333,6 +337,9 @@ export function CartProvider({ children }) {
           : item
       );
     });
+
+    trackCartAddition(bundleItem);
+    return bundleItem;
   }
 
   /*
