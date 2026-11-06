@@ -45,7 +45,6 @@ const EMPTY_CUSTOMER_DETAILS = {
   name: "",
   phone: "",
   phoneSecondary: "",
-  whatsappPhone: "",
   email: "",
   governorate: "",
   area: "",
@@ -1151,251 +1150,67 @@ export default function Checkout() {
 
 
 
-    const itemsText =
-
-      submittedOrder.items
-
-        .map((item) => {
-
-          const itemTotal =
-
-            Number(
-
-              item.price || 0
-
-            ) *
-
-            Number(
-
-              item.quantity || 0
-
-            );
-
-
-
-          const variantParts =
-            [];
-
-          if (item.bundleOfferId) {
-            const components = (item.bundleItems || [])
-              .map(
-                (component) =>
-                  `  - ${component.name} ${component.weight} × ${component.quantity}`
-              )
-              .join("\n");
-            return `• باقة ${item.bundleName} × ${item.quantity} = ${formatPrice(itemTotal)} ${STORE_CONFIG.currency}${components ? `\n${components}` : ""}`;
-          }
-
-          if (item.weight) {
-            variantParts.push(
-              item.weight
-
-            );
-
-          }
-const variantText =
-
-            variantParts.length
-
-              ? ` — ${variantParts.join(
-
-                  " — "
-
-                )}`
-
-              : "";
-
-
-
-          const promotionText = item.promotionLabel
-            ? ` — ${item.promotionLabel} (${item.discountPercent}%)`
-            : "";
-
-          return `• ${
-            item.name
-          }${variantText} × ${
-            item.quantity
-          } = ${formatPrice(
-            itemTotal
-          )} ${
-            STORE_CONFIG.currency
-          }${promotionText}`;
-
-        })
-
-        .join("\n");
-
-
-
-    const message = `أهلاً بيرنا فوودز ❤️
-
-
-
-طلب جديد من الموقع
-
-
-
-رقم الطلب:
-
-${submittedOrder.orderNumber}
-
-
-
-العميل:
-
-${submittedOrder.customer.name}
-
-
-
-الموبايل:
-
-${submittedOrder.customer.phone}
-
-رقم موبايل بديل:
-
-${submittedOrder.customer.phoneSecondary}
-
-البريد الإلكتروني:
-
-${submittedOrder.customer.email || "غير مضاف"}
-
-
-
-المحافظة:
-
-${submittedOrder.customer.governorate}
-
-
-
-المنطقة:
-
-${submittedOrder.customer.area}
-
-
-
-العنوان:
-
-${submittedOrder.customer.address}
-
-
-
-منطقة الشحن:
-
-${
-
-  submittedOrder.shippingZoneName ||
-
-  "غير محددة"
-
-}
-
-
-
-المنتجات:
-
-${itemsText}
-
-
-
-إجمالي المنتجات:
-
-${formatPrice(
-
-  submittedOrder.subtotal
-
-)} ${STORE_CONFIG.currency}
-
-
-
-الشحن:
-
-${
-
-  Number(
-
-    submittedOrder.shipping
-
-  ) === 0
-
-    ? "مجاني"
-
-    : `${formatPrice(
-
-        submittedOrder.shipping
-
-      )} ${
-
-        STORE_CONFIG.currency
-
-      }`
-
-}
-
-
-
-الإجمالي:
-
-${formatPrice(
-
-  submittedOrder.total
-
-)} ${STORE_CONFIG.currency}
-
-
-
-جدية الحجز المطلوبة 50%:
-
-${formatPrice(
-
-  submittedOrder.depositAmount
-
-)} ${STORE_CONFIG.currency}
-
-
-
-المتبقي عند الاستلام 50%:
-
-${formatPrice(
-
-  submittedOrder.remainingAmount
-
-)} ${STORE_CONFIG.currency}
-
-
-
-طريقة الدفع:
-
-تحويل جدية حجز 50% + 50% عند الاستلام
-
-
-
-ملاحظات:
-
-${
-
-  submittedOrder.customer
-
-    .notes || "لا توجد"
-
-}
-
-
-
-برجاء تحويل قيمة جدية الحجز ثم رفع صورة الإيصال من خلال رابط تتبع الطلب أدناه.
-
-بعد اعتماد جدية الحجز سيتم تأكيد الطلب وشحنه خلال يومي عمل من تاريخ الاعتماد.
-
-تتبع الطلب ورفع الإيصال:
-
-${window.location.origin}/track-order?order=${encodeURIComponent(
-  submittedOrder.orderNumber
-)}
-
-في حالة إرجاع الطلب يتحمل العميل قيمة الشحن.
-
-
-
-شكراً لاختياركم بيرنا فوودز ❤️`;
+    const itemsText = submittedOrder.items
+      .map((item) => {
+        const quantity = Number(item.quantity || 0);
+        const itemTotal = Number(item.price || 0) * quantity;
+        const price = `${formatPrice(itemTotal)} ${STORE_CONFIG.currency}`;
+
+        if (item.bundleOfferId) {
+          const components = (item.bundleItems || [])
+            .map(
+              (component) =>
+                `  - ${component.name} ${component.weight} × ${component.quantity}`
+            )
+            .join("\n");
+          return `• ${item.bundleName} × ${quantity} — ${price}${
+            components ? `\n${components}` : ""
+          }`;
+        }
+
+        const variant = item.weight ? ` (${item.weight})` : "";
+        return `• ${item.name}${variant} × ${quantity} — ${price}`;
+      })
+      .join("\n");
+
+    const customer = submittedOrder.customer;
+    const shippingText =
+      Number(submittedOrder.shipping) === 0
+        ? "مجاني"
+        : `${formatPrice(submittedOrder.shipping)} ${STORE_CONFIG.currency}`;
+    const address = [
+      customer.governorate,
+      customer.area,
+      customer.address,
+    ]
+      .filter(Boolean)
+      .join("، ");
+    const message = [
+      "السلام عليكم، أرغب في تأكيد طلبي من بيرنا فوودز.",
+      "",
+      `*رقم الطلب:* ${submittedOrder.orderNumber}`,
+      `*الاسم:* ${customer.name}`,
+      `*الموبايل (واتساب):* ${customer.phone}`,
+      ...(customer.phoneSecondary
+        ? [`*موبايل بديل:* ${customer.phoneSecondary}`]
+        : []),
+      `*العنوان:* ${address}`,
+      "",
+      "*المنتجات:*",
+      itemsText,
+      "",
+      `*قيمة المنتجات:* ${formatPrice(submittedOrder.subtotal)} ${STORE_CONFIG.currency}`,
+      `*الشحن:* ${shippingText}`,
+      `*الإجمالي شامل الشحن:* ${formatPrice(submittedOrder.total)} ${STORE_CONFIG.currency}`,
+      `*جدية الحجز (50%):* ${formatPrice(submittedOrder.depositAmount)} ${STORE_CONFIG.currency}`,
+      `*المتبقي عند الاستلام:* ${formatPrice(submittedOrder.remainingAmount)} ${STORE_CONFIG.currency}`,
+      "",
+      ...(customer.notes ? [`*ملاحظات:* ${customer.notes}`, ""] : []),
+      "برجاء تحويل قيمة جدية الحجز ورفع الإيصال لإتمام الطلب.",
+      "بعد اعتماد جدية الحجز سيتم تأكيد الطلب وشحنه خلال يومي عمل.",
+      "",
+      "شكرًا لاختياركم بيرنا فوودز ❤️",
+    ].join("\n");
 
 
 
@@ -1489,7 +1304,7 @@ ${window.location.origin}/track-order?order=${encodeURIComponent(
             <p>
               تم تسجيل طلبك بنجاح.
               <br />
-              حوّل جدية الحجز وارفع الإيصال عبر رابط التتبع.
+              برجاء تحويل قيمة جدية الحجز ورفع الإيصال لإتمام الطلب.
               <br />
               بعد اعتماد الدفع سيتم شحن الطلب خلال يومي عمل.
             </p>
@@ -1656,7 +1471,6 @@ ${window.location.origin}/track-order?order=${encodeURIComponent(
                   amountLabel={`${formatPrice(
                     submittedOrder.depositAmount
                   )} ${STORE_CONFIG.currency}`}
-                  orderNumber={submittedOrder.orderNumber}
                 />
 
 
@@ -1699,7 +1513,7 @@ ${window.location.origin}/track-order?order=${encodeURIComponent(
 
               >
 
-                🔎 تتبع الطلب
+                📤 رفع إيصال التحويل
 
               </Link>
 
@@ -1727,8 +1541,7 @@ ${window.location.origin}/track-order?order=${encodeURIComponent(
 
               احتفظ برقم الطلب
               <br />
-              لاستخدامه في متابعة حالة الطلب
-              وإرسال إيصال التحويل.
+              لمتابعة حالة الطلب.
               <br />
               إذا لم يفتح واتساب تلقائيًا، اضغط زر إرسال تفاصيل الطلب.
             </p>
@@ -2041,7 +1854,7 @@ ${window.location.origin}/track-order?order=${encodeURIComponent(
 
                   <label>
 
-                    رقم الموبايل الأول *
+                    رقم الموبايل الأول (رقم واتساب) *
 
                   </label>
 
@@ -2087,24 +1900,6 @@ ${window.location.origin}/track-order?order=${encodeURIComponent(
                     placeholder="01xxxxxxxxx"
                   />
 
-                </div>
-
-                <div className="form-field">
-                  <label>
-                    رقم واتساب لإرسال تأكيد الطلب (اختياري)
-                  </label>
-                  <input
-                    type="tel"
-                    name="whatsappPhone"
-                    value={form.whatsappPhone}
-                    onChange={handleChange}
-                    placeholder="اكتب رقم واتساب مع كود الدولة"
-                    autoComplete="tel"
-                  />
-                  <small>
-                    لن نستخدم رقم الموبايل الأساسي لرسائل واتساب؛ اكتب رقم واتساب هنا
-                    إذا أردت استلام تأكيد الدفع عليه.
-                  </small>
                 </div>
 
                 <div className="form-field">

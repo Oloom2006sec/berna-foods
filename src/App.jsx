@@ -7,7 +7,6 @@ import {
   Routes,
   Route,
   useLocation,
-  useNavigate,
 } from "react-router-dom";
 
 import Header from "./components/Header";
@@ -43,7 +42,6 @@ import "./berna-redesign.css";
 
 function HomePage() {
   const { hash } = useLocation();
-  const navigate = useNavigate();
   const { settings } = useStoreSettings();
   const groupedProducts = groupProducts();
   const productByName = (name) =>
@@ -136,14 +134,20 @@ function HomePage() {
     },
   ];
   const [selectedHoneyCategory, setSelectedHoneyCategory] = useState("all");
-  const activeHoneyCategory =
+  const [selectedHoneyCategoryHash, setSelectedHoneyCategoryHash] =
+    useState(null);
+  const hashHoneyCategory =
     hash === "#herbs"
       ? "herbs"
       : hash === "#blends"
         ? "blends"
         : hash === "#honey"
           ? "all"
-          : selectedHoneyCategory;
+          : null;
+  const activeHoneyCategory =
+    selectedHoneyCategoryHash === hash
+      ? selectedHoneyCategory
+      : hashHoneyCategory || selectedHoneyCategory;
   const activeHoneyProducts =
     honeyCategories.find((category) => category.id === activeHoneyCategory)
       ?.products || honeyProducts;
@@ -393,10 +397,8 @@ function HomePage() {
                   className={`home-benefit-tab${activeHoneyCategory === category.id ? " selected" : ""}`}
                   aria-pressed={activeHoneyCategory === category.id}
                   onClick={() => {
-                    if (hash) {
-                      navigate("/", { replace: true });
-                    }
                     setSelectedHoneyCategory(category.id);
+                    setSelectedHoneyCategoryHash(hash);
                   }}
                 >
                   {category.label}

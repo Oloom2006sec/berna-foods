@@ -899,7 +899,6 @@ function getVariantText(item) {
                     amountLabel={`${formatPrice(
                       order.deposit_amount
                     )} ج.م`}
-                    orderNumber={order.order_number}
                     depositPercent={
                       order.total > 0
                         ? Math.round(

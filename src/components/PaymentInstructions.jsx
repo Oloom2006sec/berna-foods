@@ -2,7 +2,6 @@ import "./payment-instructions.css";
 
 export default function PaymentInstructions({
   amountLabel,
-  orderNumber,
   depositPercent = 50,
 }) {
   const remainingPercent = 100 - depositPercent;
@@ -18,28 +17,10 @@ export default function PaymentInstructions({
         </p>
       )}
 
-      <ol className="payment-steps">
-        <li>
-          اختر إنستاباي أو فودافون كاش، وحوّل {depositPercent}% من إجمالي
-          الطلب شامل الشحن باستخدام الرقم أو الباركود المناسب.
-        </li>
-        <li>
-          بعد تسجيل الطلب والتحويل، افتح تتبع الطلب وارفع صورة إيصال التحويل.
-          {orderNumber && (
-            <>
-              {" "}
-              <a href={`/track-order?order=${encodeURIComponent(orderNumber)}`}>
-                تتبع الطلب ورفع الإيصال
-              </a>
-            </>
-          )}
-        </li>
-        <li>
-          سنراجع الإيصال ونطابقه مع المبلغ الوارد. إذا تم التأكد منه سنؤكد
-          الطلب، وسيتم شحنه خلال يومي عمل من اعتماد جدية الحجز. وإذا ظهرت
-          مشكلة سنتواصل معك لإعادة التحويل.
-        </li>
-      </ol>
+      <p className="payment-instructions-steps">
+        اختر إنستاباي أو فودافون كاش، وحوّل {depositPercent}% من إجمالي الطلب
+        شامل الشحن باستخدام الرقم أو الباركود المناسب.
+      </p>
 
       <div className="payment-instructions-copy">
         <span>رقم التحويل لفودافون كاش:</span>
