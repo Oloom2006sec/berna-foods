@@ -10,9 +10,20 @@ const DEPOSIT_PERCENTAGE = 0.50;
 */
 
 function generateOrderNumber() {
-  return `BR-${Math.floor(
-    100000 + Math.random() * 900000
-  )}`;
+  const suffix = crypto
+    .randomUUID()
+    .replace(/-/g, "")
+    .slice(0, 16)
+    .toUpperCase();
+  return `BR-${suffix}`;
+}
+
+function isOrderNumberConflict(error) {
+  return (
+    error?.code === "23505" &&
+    (error.message?.includes("orders_order_number_uidx") ||
+      error.details?.includes("Key (order_number)="))
+  );
 }
 
 /*
@@ -46,7 +57,7 @@ function roundMoney(value) {
 */
 
 export async function createOrder(orderData) {
-  const orderNumber =
+  let orderNumber =
     orderData.orderNumber ||
     generateOrderNumber();
 
@@ -86,53 +97,15 @@ export async function createOrder(orderData) {
     ==============================
   */
 
-  const order = {
-    ...orderData,
-
-    orderNumber,
-
-    /*
-      لا نحفظ receipt token
-      في نسخة الطلب المحلية.
-    */
-    receiptToken: undefined,
-
-    subtotal,
-
-    shipping,
-
-    total,
-
-    depositAmount,
-
-    depositPaid: 0,
-
-    remainingAmount,
-
-    paymentStatus:
-      "deposit_required",
-
-    receiptStatus:
-      "not_uploaded",
-
-    receiptUploadedAt:
-      null,
-
-    status:
-      "new",
-
-    createdAt:
-      new Date().toISOString(),
-  };
-
   /*
     ==========================================
     حفظ الطلب في Supabase
     ==========================================
   */
 
-  const { error } =
-    await supabase
+  let insertError = null;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const { error } = await supabase
       .from("orders")
       .insert({
         /*
@@ -257,17 +230,69 @@ export async function createOrder(orderData) {
           "new",
       });
 
-  if (error) {
+    if (!error) {
+      insertError = null;
+      break;
+    }
+
+    if (!isOrderNumberConflict(error) || attempt === 4) {
+      insertError = error;
+      break;
+    }
+
+    orderNumber = generateOrderNumber();
+  }
+
+  if (insertError) {
     console.error(
       "SUPABASE CREATE ORDER ERROR:",
-      error
+      insertError
     );
 
     throw new Error(
-      error.message ||
+      insertError.message ||
         "تعذر حفظ الطلب في قاعدة البيانات."
     );
   }
+
+  const order = {
+    ...orderData,
+
+    orderNumber,
+
+    /*
+      لا نحفظ receipt token
+      في نسخة الطلب المحلية.
+    */
+    receiptToken: undefined,
+
+    subtotal,
+
+    shipping,
+
+    total,
+
+    depositAmount,
+
+    depositPaid: 0,
+
+    remainingAmount,
+
+    paymentStatus:
+      "deposit_required",
+
+    receiptStatus:
+      "not_uploaded",
+
+    receiptUploadedAt:
+      null,
+
+    status:
+      "new",
+
+    createdAt:
+      new Date().toISOString(),
+  };
 
   trackPurchase(order);
 
