@@ -1206,10 +1206,11 @@ export default function Checkout() {
       `*المتبقي عند الاستلام:* ${formatPrice(submittedOrder.remainingAmount)} ${STORE_CONFIG.currency}`,
       "",
       ...(customer.notes ? [`*ملاحظات:* ${customer.notes}`, ""] : []),
-      "برجاء تحويل قيمة جدية الحجز ورفع الإيصال من خلال رابط تتبع الطلب:",
+      "برجاء تحويل قيمة جدية الحجز، ثم رفع صورة الإيصال من الرابط التالي:",
       `${window.location.origin}/track-order?order=${encodeURIComponent(
         submittedOrder.orderNumber
       )}`,
+      "يمكنك أيضًا متابعة حالة طلبك من خلال الرابط نفسه.",
       "بعد اعتماد جدية الحجز سيتم تأكيد الطلب وشحنه خلال يومي عمل.",
       "",
       "شكرًا لاختياركم بيرنا فوودز ❤️",
