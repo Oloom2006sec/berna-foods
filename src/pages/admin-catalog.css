@@ -463,9 +463,43 @@
 
 .admin-bundle-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 14px;
-  white-space: nowrap;
+  white-space: normal;
+}
+
+.admin-bundle-order-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.admin-bundle-actions .admin-bundle-order,
+.admin-bundle-actions .admin-bundle-edit,
+.admin-bundle-actions .admin-bundle-republish {
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid #dce5dc;
+  border-radius: 7px;
+  background: #f3f7f3;
+  color: #244b3b;
+  font-weight: 700;
+}
+
+.admin-bundle-actions .admin-bundle-order {
+  width: 36px;
+  padding: 4px;
+  font-size: 18px;
+}
+
+.admin-bundle-actions .admin-bundle-republish {
+  border-color: #b7cfb9;
+  background: #eff8ef;
+}
+
+.admin-bundle-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .admin-bundle-actions label {

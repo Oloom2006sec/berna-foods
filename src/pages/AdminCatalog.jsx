@@ -26,6 +26,14 @@ function createBundleDraft() {
   };
 }
 
+function getLocalDate() {
+  const date = new Date();
+  const offset = date.getTimezoneOffset();
+  return new Date(date.getTime() - offset * 60_000)
+    .toISOString()
+    .slice(0, 10);
+}
+
 function roundMoney(value) {
   return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 }
@@ -63,6 +71,7 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
   const [activeTab, setActiveTab] = useState("prices");
   const [draft, setDraft] = useState(settings);
   const [bundleDraft, setBundleDraft] = useState(createBundleDraft);
+  const [editingBundleId, setEditingBundleId] = useState("");
   const [saveError, setSaveError] = useState("");
   const [success, setSuccess] = useState("");
   const [saving, setSaving] = useState(false);
@@ -204,6 +213,38 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
     }));
   }
 
+  function editBundle(bundle, republish = false) {
+    const today = getLocalDate();
+    setBundleDraft({
+      ...bundle,
+      status: republish ? "active" : bundle.status,
+      startDate: republish ? today : bundle.startDate,
+      endDate:
+        republish && bundle.endDate && bundle.endDate < today
+          ? ""
+          : bundle.endDate,
+      items: bundle.items.map((item) => ({ ...item })),
+      selectedSku:
+        bundle.items[0]?.sku ||
+        products.find((product) => product.available !== false)?.sku ||
+        "",
+      selectedQuantity: 1,
+    });
+    setEditingBundleId(bundle.id);
+    setActiveTab("bundles");
+    setSaveError("");
+    setSuccess("");
+    document
+      .querySelector(".admin-bundle-form")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function resetBundleDraft() {
+    setBundleDraft(createBundleDraft());
+    setEditingBundleId("");
+    setSaveError("");
+  }
+
   function addBundle() {
     const name = bundleDraft.name.trim();
     const discountPercent = Number(bundleDraft.discountPercent);
@@ -236,7 +277,7 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
     }
 
     const newBundle = {
-      id: crypto.randomUUID(),
+      id: editingBundleId || crypto.randomUUID(),
       name,
       description: bundleDraft.description.trim(),
       status: bundleDraft.status,
@@ -251,9 +292,13 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
 
     setDraft((current) => ({
       ...current,
-      bundleOffers: [...current.bundleOffers, newBundle],
+      bundleOffers: editingBundleId
+        ? current.bundleOffers.map((bundle) =>
+            bundle.id === editingBundleId ? newBundle : bundle
+          )
+        : [...current.bundleOffers, newBundle],
     }));
-    setBundleDraft(createBundleDraft());
+    resetBundleDraft();
     setSaveError("");
     setSuccess("");
   }
@@ -265,6 +310,46 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
         bundle.id === bundleId ? { ...bundle, ...updates } : bundle
       ),
     }));
+    if (editingBundleId === bundleId) {
+      setBundleDraft((current) => ({ ...current, ...updates }));
+    }
+    setSuccess("");
+  }
+
+  function removeBundle(bundleId) {
+    setDraft((current) => ({
+      ...current,
+      bundleOffers: current.bundleOffers.filter(
+        (bundle) => bundle.id !== bundleId
+      ),
+    }));
+    if (editingBundleId === bundleId) {
+      resetBundleDraft();
+    }
+    setSuccess("");
+  }
+
+  function moveBundle(bundleId, direction) {
+    setDraft((current) => {
+      const currentIndex = current.bundleOffers.findIndex(
+        (bundle) => bundle.id === bundleId
+      );
+      const nextIndex = currentIndex + direction;
+      if (
+        currentIndex < 0 ||
+        nextIndex < 0 ||
+        nextIndex >= current.bundleOffers.length
+      ) {
+        return current;
+      }
+
+      const bundleOffers = [...current.bundleOffers];
+      [bundleOffers[currentIndex], bundleOffers[nextIndex]] = [
+        bundleOffers[nextIndex],
+        bundleOffers[currentIndex],
+      ];
+      return { ...current, bundleOffers };
+    });
     setSuccess("");
   }
 
@@ -469,14 +554,15 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
               <div className="admin-catalog-info">
                 العرض الذي حالته «نشط» وقناة بيعه «أفراد» يظهر تلقائيًا أسفل
                 البانر الرئيسي في صفحة العميل خلال الفترة المحددة، ويمكن للعميل
-                إضافته إلى السلة بسعر المجموعة.
+                إضافته إلى السلة بسعر المجموعة. استخدم زري التقديم والتأخير
+                لترتيب ظهور العروض على الموقع.
               </div>
 
               <div className="admin-bundle-form">
                 <section className="admin-bundle-section">
                   <div className="admin-bundle-section-heading">
                     <h3>بيانات العرض</h3>
-                    <span>شاشة إدخال</span>
+                    <span>{editingBundleId ? "تعديل العرض" : "شاشة إدخال"}</span>
                   </div>
                   <div className="admin-bundle-details-grid">
                     <label>
@@ -743,17 +829,14 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
                     className="admin-bundle-add"
                     onClick={addBundle}
                   >
-                    حفظ العرض في السجل
+                    {editingBundleId ? "حفظ تعديلات العرض" : "حفظ العرض في السجل"}
                   </button>
                   <button
                     type="button"
                     className="admin-bundle-secondary"
-                    onClick={() => {
-                      setBundleDraft(createBundleDraft());
-                      setSaveError("");
-                    }}
+                    onClick={resetBundleDraft}
                   >
-                    عرض جديد
+                    {editingBundleId ? "إلغاء التعديل" : "عرض جديد"}
                   </button>
                 </div>
               </div>
@@ -769,11 +852,13 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
                         {bundle.description && <p>{bundle.description}</p>}
                         <p className="admin-bundle-metadata">
                           {bundle.channel || "أفراد"} ·{" "}
-                          {bundle.status === "active"
-                            ? "نشط"
-                            : bundle.status === "paused"
-                              ? "متوقف"
-                              : "مسودة"}
+                          {bundle.endDate && bundle.endDate < getLocalDate()
+                            ? "منتهي"
+                            : bundle.status === "active"
+                              ? "نشط"
+                              : bundle.status === "paused"
+                                ? "متوقف"
+                                : "مسودة"}
                           {(bundle.startDate || bundle.endDate) &&
                             ` · ${bundle.startDate || "—"} إلى ${bundle.endDate || "—"}`}
                         </p>
@@ -793,6 +878,47 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
                         </strong>
                       </div>
                       <div className="admin-bundle-actions">
+                        <div className="admin-bundle-order-actions">
+                          <button
+                            type="button"
+                            className="admin-bundle-order"
+                            disabled={draft.bundleOffers[0]?.id === bundle.id}
+                            onClick={() => moveBundle(bundle.id, -1)}
+                            aria-label={`تقديم ${bundle.name} في ترتيب العروض`}
+                            title="تقديم العرض"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            className="admin-bundle-order"
+                            disabled={
+                              draft.bundleOffers[draft.bundleOffers.length - 1]
+                                ?.id === bundle.id
+                            }
+                            onClick={() => moveBundle(bundle.id, 1)}
+                            aria-label={`تأخير ${bundle.name} في ترتيب العروض`}
+                            title="تأخير العرض"
+                          >
+                            ↓
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          className="admin-bundle-edit"
+                          onClick={() => editBundle(bundle)}
+                        >
+                          تعديل
+                        </button>
+                        {bundle.endDate && bundle.endDate < getLocalDate() && (
+                          <button
+                            type="button"
+                            className="admin-bundle-republish"
+                            onClick={() => editBundle(bundle, true)}
+                          >
+                            إعادة نشر الآن
+                          </button>
+                        )}
                         <label className="admin-bundle-discount">
                           الخصم %
                           <input
@@ -826,14 +952,7 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
                         </label>
                         <button
                           type="button"
-                          onClick={() =>
-                            setDraft((current) => ({
-                              ...current,
-                              bundleOffers: current.bundleOffers.filter(
-                                (item) => item.id !== bundle.id
-                              ),
-                            }))
-                          }
+                          onClick={() => removeBundle(bundle.id)}
                         >
                           حذف
                         </button>
