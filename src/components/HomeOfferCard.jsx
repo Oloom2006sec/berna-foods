@@ -37,7 +37,7 @@ export default function HomeOfferCard({ product, discountPercent }) {
           category={product.category}
           productName={product.name}
           compact
-          className="product-popularity-overlay product-popularity-overlay-right"
+          className="product-popularity-overlay"
         />
       </Link>
       <div className="home-offer-info">

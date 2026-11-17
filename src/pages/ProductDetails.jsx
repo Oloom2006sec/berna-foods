@@ -485,14 +485,13 @@ export default function ProductDetails() {
                 : "صورة المنتج"}
             </small>
 
-            <div className="product-details-popularity-overlay">
-              <ProductPopularityBadge
-                productId={group.id}
-                category={group.category}
-                productName={group.name}
-                compact
-              />
-            </div>
+            <ProductPopularityBadge
+              productId={group.id}
+              category={group.category}
+              productName={group.name}
+              compact
+              className="product-popularity-overlay"
+            />
           </div>
 
           {/* ==================================================

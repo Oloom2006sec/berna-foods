@@ -134,7 +134,7 @@ export default function BundleOffersSection({ bundles = [] }) {
                     kind="bundle"
                     label="تم طلب هذه الباقة"
                     compact
-                    className="product-popularity-overlay product-popularity-overlay-right"
+                    className="product-popularity-overlay"
                   />
                 </div>
 

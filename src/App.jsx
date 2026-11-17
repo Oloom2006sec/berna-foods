@@ -581,7 +581,7 @@ function HomePage() {
                     category={product.category}
                     productName={product.name}
                     compact
-                    className="product-popularity-overlay product-popularity-overlay-top-right"
+                    className="product-popularity-overlay"
                   />
                 </Link>
               ))}

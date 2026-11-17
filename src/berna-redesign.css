@@ -378,29 +378,16 @@ body {
 .product-popularity-overlay {
   position: absolute;
   z-index: 4;
-  bottom: 14px;
-  left: 12px;
-  max-width: calc(100% - 24px);
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  left: 22px;
   margin: 0;
   padding: 6px 9px;
   font-size: 10px;
   white-space: nowrap;
-  transform: rotate(-6deg);
-  transform-origin: left center;
-}
-
-.product-popularity-overlay-right {
-  right: 12px;
-  left: auto;
-  transform-origin: right center;
-}
-
-.product-popularity-overlay-top-right {
-  top: 12px;
-  right: 12px;
-  bottom: auto;
-  left: auto;
-  transform-origin: right center;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  transform-origin: center;
 }
 
 .home-page .card-weight-option.selected {
@@ -1855,18 +1842,10 @@ body {
     radial-gradient(circle at 50% 45%, #fffefa 0, #f4efdf 72%);
 }
 
-.product-details-page .product-details-popularity-overlay {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 4;
-  transform: rotate(-6deg);
-  transform-origin: right center;
-}
-
-.product-details-page .product-details-popularity-overlay .product-order-count {
-  margin: 0;
-  font-size: 12px;
+@media (max-width: 720px) {
+  .product-popularity-overlay {
+    left: 18px;
+  }
 }
 
 .product-details-page .product-details-image-icon {
