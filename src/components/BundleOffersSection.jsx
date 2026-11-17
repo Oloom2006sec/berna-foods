@@ -5,6 +5,7 @@ import { useWishlist } from "../context/WishlistContext";
 import { groupProducts } from "../utils/productGroups";
 import BundleCompositionImage from "./BundleCompositionImage";
 import CartAddedActions from "./CartAddedActions";
+import ProductPopularityBadge from "./ProductPopularityBadge";
 import "./bundle-offers.css";
 
 function getLocalDate() {
@@ -137,6 +138,12 @@ export default function BundleOffersSection({ bundles = [] }) {
                       باقة مميزة
                     </span>
                   </div>
+                  <ProductPopularityBadge
+                    productId={`bundle:${bundle.id}`}
+                    kind="bundle"
+                    label="تم طلب هذه الباقة"
+                    compact
+                  />
                   {bundle.description && <p>{bundle.description}</p>}
                   <ul className="bundle-offer-items">
                     {bundle.items.map((item) => {

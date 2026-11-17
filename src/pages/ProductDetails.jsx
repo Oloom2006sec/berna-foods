@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 
 import ProductCard from "../components/ProductCard";
 import CartAddedActions from "../components/CartAddedActions";
+import ProductPopularityBadge from "../components/ProductPopularityBadge";
 
 import { useCart } from "../context/CartContext";
 
@@ -500,6 +501,12 @@ export default function ProductDetails() {
             <h1>
               {group.name}
             </h1>
+
+            <ProductPopularityBadge
+              productId={group.id}
+              category={group.category}
+              productName={group.name}
+            />
 
             {details?.tagline && (
               <p className="product-tagline">

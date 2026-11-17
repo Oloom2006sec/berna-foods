@@ -5,6 +5,7 @@ import { groupProducts } from "../utils/productGroups";
 import { getPromotionPricing } from "../utils/promotionPricing";
 import BundleCompositionImage from "./BundleCompositionImage";
 import CartAddedActions from "./CartAddedActions";
+import ProductPopularityBadge from "./ProductPopularityBadge";
 
 function getLocalDate() {
   const date = new Date();
@@ -31,10 +32,13 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
     () =>
       new Map(
         groupProducts().flatMap((group) =>
-          group.customerVariants.map((variant) => [
-            variant.sku,
-            { ...variant, image: group.image },
-          ])
+        group.customerVariants.map((variant) => [
+          variant.sku,
+          {
+            ...variant,
+            image: group.image,
+          },
+        ])
         )
       ),
     []
@@ -214,6 +218,12 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
               />
               <span className="promo-flash-product-info">
                 <strong>{bundle.name}</strong>
+                <ProductPopularityBadge
+                  productId={`bundle:${bundle.id}`}
+                  kind="bundle"
+                  label="تم طلب هذه الباقة"
+                  compact
+                />
                 <del>{formatMoney(regularBundleTotal)} ج.م</del>
                 <b>{formatMoney(bundle.bundlePrice)} ج.م</b>
                 <small>
@@ -315,6 +325,12 @@ function ProductSlide({
         />
         <span className="promo-flash-product-info">
           <strong>{product.name}</strong>
+          <ProductPopularityBadge
+            productId={product.id}
+            category={product.category}
+            productName={product.name}
+            compact
+          />
           {promotion && (
             <>
               <del>{promotion.originalPrice.toFixed(2)} ج.م</del>

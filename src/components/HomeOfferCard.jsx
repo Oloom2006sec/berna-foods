@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { getProductDetails } from "../data/productDetails";
 import { campaign } from "../data/homePromotions";
 import { getPromotionPricing } from "../utils/promotionPricing";
+import ProductPopularityBadge from "./ProductPopularityBadge";
 
 export default function HomeOfferCard({ product, discountPercent }) {
   const variant = product.customerVariants?.[0] || product.variants?.[0];
@@ -36,6 +37,12 @@ export default function HomeOfferCard({ product, discountPercent }) {
         <Link className="home-offer-title" to={`/products/${product.id}`}>
           {product.name}
         </Link>
+        <ProductPopularityBadge
+          productId={product.id}
+          category={product.category}
+          productName={product.name}
+          compact
+        />
         {rating && (
           <div className="home-offer-rating" aria-label={`تقييم ${rating} من 5`}>
             <span aria-hidden="true">★★★★★</span>

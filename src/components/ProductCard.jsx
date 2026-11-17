@@ -7,6 +7,7 @@ import { getProductDetails } from "../data/productDetails";
 import { getPromotionPricing } from "../utils/promotionPricing";
 import { useStoreSettings } from "../context/StoreSettingsContext";
 import CartAddedActions from "./CartAddedActions";
+import ProductPopularityBadge from "./ProductPopularityBadge";
 
 function buildWishlistItem(product) {
   const variants =
@@ -316,6 +317,12 @@ export default function ProductCard({ product }) {
         <h3>
           {product.name}
         </h3>
+
+        <ProductPopularityBadge
+          productId={product.id}
+          category={product.category}
+          productName={product.name}
+        />
 
         {averageRating && (
           <div className="product-card-rating">

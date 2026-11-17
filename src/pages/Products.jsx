@@ -3,19 +3,35 @@ import { useSearchParams } from "react-router-dom";
 
 import ProductCard from "../components/ProductCard";
 import { groupProducts } from "../utils/productGroups";
+import { getProductPopularity } from "../utils/productPopularity";
 import { useStoreSettings } from "../context/StoreSettingsContext";
-import { getPublicProductSales } from "../services/productSalesService";
 import "./products-styles.css";
+
+const POPULARITY_SORT_BAND_SIZE = 20;
+
+function getRandomRankingScore(productId, sortBy, seed) {
+  const value = `${sortBy}:${seed}:${productId}`;
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+}
+
+function isPriorityHoney(product) {
+  return (
+    product.category === "عسل النحل" ||
+    product.name.includes("عسل")
+  );
+}
 
 export default function Products() {
   useStoreSettings();
-  const [searchParams] = useSearchParams();
-
-  const initialSearch =
-    searchParams.get("search") || "";
-
-  const [search, setSearch] =
-    useState(initialSearch);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get("search") || "";
 
   const [category, setCategory] =
     useState("الكل");
@@ -23,32 +39,25 @@ export default function Products() {
   const [sortBy, setSortBy] =
     useState("featured");
 
-  const [productSales, setProductSales] =
-    useState([]);
-
-  const [salesError, setSalesError] =
-    useState(false);
+  const [rankingSeed, setRankingSeed] =
+    useState(() => Math.random());
 
   useEffect(() => {
-    let active = true;
+    if (sortBy !== "best-selling" && sortBy !== "most-ordered") {
+      return undefined;
+    }
 
-    getPublicProductSales()
-      .then((sales) => {
-        if (active) {
-          setProductSales(sales);
-        }
-      })
-      .catch((error) => {
-        console.error("Load public product sales error:", error);
-        if (active) {
-          setSalesError(true);
-        }
-      });
-
-    return () => {
-      active = false;
+    let timerId;
+    const scheduleReshuffle = () => {
+      timerId = window.setTimeout(() => {
+        setRankingSeed(Math.random());
+        scheduleReshuffle();
+      }, 15000 + Math.floor(Math.random() * 15001));
     };
-  }, []);
+
+    scheduleReshuffle();
+    return () => window.clearTimeout(timerId);
+  }, [sortBy]);
 
   /*
     ============================================================
@@ -85,13 +94,6 @@ export default function Products() {
     const normalizedSearch =
       search.trim();
 
-    const salesByName = new Map(
-      productSales.map((item) => [
-        item.product_name,
-        item,
-      ])
-    );
-
     const filteredProducts = groupedProducts.filter(
       (product) => {
         const matchesSearch =
@@ -115,30 +117,48 @@ export default function Products() {
       }
     );
 
-    if (sortBy === "featured") {
-      return filteredProducts;
+    if (
+      sortBy === "featured" ||
+      sortBy === "best-selling" ||
+      sortBy === "most-ordered"
+    ) {
+      if (sortBy === "featured") return filteredProducts;
+
+      const popularityById = new Map(
+        filteredProducts.map((product) => [
+          product.id,
+          getProductPopularity(product.id, {
+            category: product.category,
+            productName: product.name,
+            kind: "product",
+          }),
+        ])
+      );
+      const prioritizeHoney =
+        getRandomRankingScore("honey-priority", sortBy, rankingSeed) % 5 !== 0;
+
+      return [...filteredProducts].sort(
+        (a, b) => {
+          const popularityBandDifference =
+            Math.floor(popularityById.get(b.id) / POPULARITY_SORT_BAND_SIZE) -
+            Math.floor(popularityById.get(a.id) / POPULARITY_SORT_BAND_SIZE);
+          if (popularityBandDifference !== 0) {
+            return popularityBandDifference;
+          }
+
+          if (prioritizeHoney && isPriorityHoney(a) !== isPriorityHoney(b)) {
+            return isPriorityHoney(a) ? -1 : 1;
+          }
+
+          return (
+            getRandomRankingScore(a.id, sortBy, rankingSeed) -
+            getRandomRankingScore(b.id, sortBy, rankingSeed)
+          );
+        }
+      );
     }
 
     return [...filteredProducts].sort((a, b) => {
-      const salesA = salesByName.get(a.name);
-      const salesB = salesByName.get(b.name);
-
-      if (sortBy === "best-selling") {
-        return (
-          Number(salesB?.units_sold || 0) -
-            Number(salesA?.units_sold || 0) ||
-          a.name.localeCompare(b.name, "ar")
-        );
-      }
-
-      if (sortBy === "most-ordered") {
-        return (
-          Number(salesB?.order_count || 0) -
-            Number(salesA?.order_count || 0) ||
-          a.name.localeCompare(b.name, "ar")
-        );
-      }
-
       if (sortBy === "price-ascending") {
         return a.minPrice - b.minPrice;
       }
@@ -153,8 +173,8 @@ export default function Products() {
     groupedProducts,
     search,
     category,
-    productSales,
     sortBy,
+    rankingSeed,
   ]);
 
   /*
@@ -208,11 +228,18 @@ export default function Products() {
             <input
               type="search"
               value={search}
-              onChange={(event) =>
-                setSearch(
-                  event.target.value
-                )
-              }
+              onChange={(event) => {
+                const nextSearch = event.target.value;
+                const nextParams = new URLSearchParams(searchParams);
+
+                if (nextSearch) {
+                  nextParams.set("search", nextSearch);
+                } else {
+                  nextParams.delete("search");
+                }
+
+                setSearchParams(nextParams, { replace: true });
+              }}
               placeholder="ابحث عن منتج..."
               aria-label="البحث عن منتج"
             />
@@ -259,9 +286,13 @@ export default function Products() {
           <select
             id="products-sort"
             value={sortBy}
-            onChange={(event) =>
-              setSortBy(event.target.value)
-            }
+            onChange={(event) => {
+              const nextSort = event.target.value;
+              setSortBy(nextSort);
+              if (nextSort === "best-selling" || nextSort === "most-ordered") {
+                setRankingSeed(Math.random());
+              }
+            }}
           >
             <option value="featured">الترتيب الافتراضي</option>
             <option value="best-selling">الأكثر مبيعًا</option>
@@ -271,21 +302,6 @@ export default function Products() {
             <option value="name">الاسم: أبجديًا</option>
           </select>
         </div>
-
-        {salesError && sortBy !== "featured" && (
-          <p className="products-sales-note" role="status">
-            تعذر تحميل ترتيب المبيعات حاليًا؛ يمكنك استخدام ترتيب السعر أو الاسم.
-          </p>
-        )}
-
-        {!salesError &&
-          productSales.length === 0 &&
-          (sortBy === "best-selling" ||
-            sortBy === "most-ordered") && (
-            <p className="products-sales-note" role="status">
-              لا توجد بيانات مبيعات كافية لترتيب المنتجات بعد.
-            </p>
-          )}
 
         {/* ====================================================
             RESULT INFO

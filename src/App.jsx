@@ -15,6 +15,7 @@ import HomeOfferCard from "./components/HomeOfferCard";
 import PromoFlashShowcase from "./components/PromoFlashShowcase";
 import BundleOffersSection from "./components/BundleOffersSection";
 import ProductCard from "./components/ProductCard";
+import ProductPopularityBadge from "./components/ProductPopularityBadge";
 
 import ProductDetails from "./pages/ProductDetails";
 import Products from "./pages/Products";
@@ -274,6 +275,14 @@ function HomePage() {
                   <span className="home-shop-card-copy">
                     <strong>{benefit.title}</strong>
                     <small>{benefit.description}</small>
+                    {product && (
+                      <ProductPopularityBadge
+                        productId={product.id}
+                        category={product.category}
+                        productName={product.name}
+                        compact
+                      />
+                    )}
                   </span>
                   <b aria-hidden="true">←</b>
                 </a>
@@ -566,6 +575,12 @@ function HomePage() {
                 >
                   <img src={product.image} alt={product.name} loading="lazy" />
                   <span>{product.name}</span>
+                  <ProductPopularityBadge
+                    productId={product.id}
+                    category={product.category}
+                    productName={product.name}
+                    compact
+                  />
                 </Link>
               ))}
           </div>
