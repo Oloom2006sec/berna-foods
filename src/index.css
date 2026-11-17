@@ -1066,7 +1066,7 @@ a {
   place-items: center;
 }
 
-.product-details-image span {
+.product-details-image-icon > span {
   font-size: 180px;
 }
 
@@ -2744,7 +2744,7 @@ a {
     min-height: 350px;
   }
 
-  .product-details-image span {
+  .product-details-image-icon > span {
     font-size: 120px;
   }
 
@@ -3717,7 +3717,7 @@ a {
   filter: blur(2px);
 }
 
-.product-details-image > span {
+.product-details-image-icon > span {
   position: relative;
   z-index: 2;
 
@@ -4237,7 +4237,7 @@ a {
     border-radius: 22px;
   }
 
-  .product-details-image > span {
+  .product-details-image-icon > span {
     font-size: 125px;
   }
 

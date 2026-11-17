@@ -302,6 +302,12 @@ export default function ProductCard({ product }) {
           خصم {promotion.discountPercent}%
         </span>
       )}
+      <ProductPopularityBadge
+        productId={product.id}
+        category={product.category}
+        productName={product.name}
+        className="product-popularity-overlay"
+      />
       </div>
 
       {/* ======================================================
@@ -317,12 +323,6 @@ export default function ProductCard({ product }) {
         <h3>
           {product.name}
         </h3>
-
-        <ProductPopularityBadge
-          productId={product.id}
-          category={product.category}
-          productName={product.name}
-        />
 
         {averageRating && (
           <div className="product-card-rating">

@@ -32,17 +32,18 @@ export default function HomeOfferCard({ product, discountPercent }) {
         <span className="home-offer-discount">خصم {actualDiscountPercent}%</span>
         <img src={product.image} alt={product.name} loading="lazy" />
         <span className="home-offer-badge">{campaign.offerLabel}</span>
-      </Link>
-      <div className="home-offer-info">
-        <Link className="home-offer-title" to={`/products/${product.id}`}>
-          {product.name}
-        </Link>
         <ProductPopularityBadge
           productId={product.id}
           category={product.category}
           productName={product.name}
           compact
+          className="product-popularity-overlay product-popularity-overlay-right"
         />
+      </Link>
+      <div className="home-offer-info">
+        <Link className="home-offer-title" to={`/products/${product.id}`}>
+          {product.name}
+        </Link>
         {rating && (
           <div className="home-offer-rating" aria-label={`تقييم ${rating} من 5`}>
             <span aria-hidden="true">★★★★★</span>

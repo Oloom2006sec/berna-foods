@@ -271,18 +271,19 @@ function HomePage() {
                     ) : (
                       <span aria-hidden="true">🍯</span>
                     )}
-                  </span>
-                  <span className="home-shop-card-copy">
-                    <strong>{benefit.title}</strong>
-                    <small>{benefit.description}</small>
                     {product && (
                       <ProductPopularityBadge
                         productId={product.id}
                         category={product.category}
                         productName={product.name}
                         compact
+                        className="product-popularity-overlay"
                       />
                     )}
+                  </span>
+                  <span className="home-shop-card-copy">
+                    <strong>{benefit.title}</strong>
+                    <small>{benefit.description}</small>
                   </span>
                   <b aria-hidden="true">←</b>
                 </a>
@@ -580,6 +581,7 @@ function HomePage() {
                     category={product.category}
                     productName={product.name}
                     compact
+                    className="product-popularity-overlay product-popularity-overlay-top-right"
                   />
                 </Link>
               ))}

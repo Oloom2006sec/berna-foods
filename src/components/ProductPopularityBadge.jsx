@@ -13,6 +13,7 @@ export default function ProductPopularityBadge({
   label = "تم طلبه",
   compact = false,
   kind = "product",
+  className = "",
 }) {
   const [orderCount, setOrderCount] = useState(() =>
     getProductPopularity(productId, { category, productName, kind })
@@ -43,7 +44,7 @@ export default function ProductPopularityBadge({
 
   return (
     <span
-      className={`product-order-count${compact ? " product-order-count-compact" : ""}`}
+      className={`product-order-count${compact ? " product-order-count-compact" : ""}${className ? ` ${className}` : ""}`}
     >
       <span aria-hidden="true">🔥</span>
       <span>

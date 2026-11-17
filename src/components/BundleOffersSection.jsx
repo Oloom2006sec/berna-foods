@@ -129,6 +129,13 @@ export default function BundleOffersSection({ bundles = [] }) {
                       .map((product) => product.name)
                       .join("، ")}`}
                   />
+                  <ProductPopularityBadge
+                    productId={`bundle:${bundle.id}`}
+                    kind="bundle"
+                    label="تم طلب هذه الباقة"
+                    compact
+                    className="product-popularity-overlay product-popularity-overlay-right"
+                  />
                 </div>
 
                 <div className="bundle-offer-copy">
@@ -138,12 +145,6 @@ export default function BundleOffersSection({ bundles = [] }) {
                       باقة مميزة
                     </span>
                   </div>
-                  <ProductPopularityBadge
-                    productId={`bundle:${bundle.id}`}
-                    kind="bundle"
-                    label="تم طلب هذه الباقة"
-                    compact
-                  />
                   {bundle.description && <p>{bundle.description}</p>}
                   <ul className="bundle-offer-items">
                     {bundle.items.map((item) => {

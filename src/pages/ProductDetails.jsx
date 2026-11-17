@@ -467,7 +467,6 @@ export default function ProductDetails() {
                     objectPosition: "center",
                     display: "block",
                     margin: "auto",
-                    mixBlendMode: "multiply",
                     transform: `scale(${selectedImageScale})`,
                     transition: "transform 240ms ease",
                   }}
@@ -486,6 +485,14 @@ export default function ProductDetails() {
                 : "صورة المنتج"}
             </small>
 
+            <div className="product-details-popularity-overlay">
+              <ProductPopularityBadge
+                productId={group.id}
+                category={group.category}
+                productName={group.name}
+                compact
+              />
+            </div>
           </div>
 
           {/* ==================================================
@@ -501,12 +508,6 @@ export default function ProductDetails() {
             <h1>
               {group.name}
             </h1>
-
-            <ProductPopularityBadge
-              productId={group.id}
-              category={group.category}
-              productName={group.name}
-            />
 
             {details?.tagline && (
               <p className="product-tagline">

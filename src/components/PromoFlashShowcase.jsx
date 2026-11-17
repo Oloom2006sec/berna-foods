@@ -206,24 +206,27 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
               <span className="promo-flash-discount">
                 وفر {Number(bundle.discountPercent) || 0}%
               </span>
-              <BundleCompositionImage
-                className="promo-flash-bundle-images"
-                products={bundleProducts.map(({ product, sku }) => ({
-                  sku,
-                  image: product.image,
-                }))}
-                alt={`منتجات ${bundle.name}: ${bundleProducts
-                  .map(({ product }) => product.name)
-                  .join("، ")}`}
-              />
-              <span className="promo-flash-product-info">
-                <strong>{bundle.name}</strong>
+              <div className="promo-flash-bundle-visual">
+                <BundleCompositionImage
+                  className="promo-flash-bundle-images"
+                  products={bundleProducts.map(({ product, sku }) => ({
+                    sku,
+                    image: product.image,
+                  }))}
+                  alt={`منتجات ${bundle.name}: ${bundleProducts
+                    .map(({ product }) => product.name)
+                    .join("، ")}`}
+                />
                 <ProductPopularityBadge
                   productId={`bundle:${bundle.id}`}
                   kind="bundle"
                   label="تم طلب هذه الباقة"
                   compact
+                  className="product-popularity-overlay"
                 />
+              </div>
+              <span className="promo-flash-product-info">
+                <strong>{bundle.name}</strong>
                 <del>{formatMoney(regularBundleTotal)} ج.م</del>
                 <b>{formatMoney(bundle.bundlePrice)} ج.م</b>
                 <small>
@@ -318,19 +321,22 @@ function ProductSlide({
         <span className="promo-flash-discount">
           ⚡ خصم {actualDiscountPercent}%
         </span>
-        <img
-          className="promo-flash-product-image"
-          src={product.image}
-          alt={product.name}
-        />
-        <span className="promo-flash-product-info">
-          <strong>{product.name}</strong>
+        <span className="promo-flash-product-visual">
+          <img
+            className="promo-flash-product-image"
+            src={product.image}
+            alt={product.name}
+          />
           <ProductPopularityBadge
             productId={product.id}
             category={product.category}
             productName={product.name}
             compact
+            className="product-popularity-overlay"
           />
+        </span>
+        <span className="promo-flash-product-info">
+          <strong>{product.name}</strong>
           {promotion && (
             <>
               <del>{promotion.originalPrice.toFixed(2)} ج.م</del>
