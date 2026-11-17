@@ -1,8 +1,10 @@
 const STORAGE_KEY = "berna-customer-product-popularity-v2";
+const DAILY_ACTIVITY_KEY = "berna-customer-product-popularity-daily-v1";
 
 let memoryCounts = {};
 const popularityListeners = new Map();
-const popularityTimers = new Map();
+const popularityOptions = new Map();
+let dailyActivityTimer = null;
 
 function readCounts() {
   try {
@@ -28,6 +30,94 @@ function writeCounts(counts) {
   } catch (error) {
     console.error("Save customer product popularity error:", error);
   }
+}
+
+function getLocalDateKey() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function readDailyActivity() {
+  try {
+    const parsed = JSON.parse(
+      window.localStorage.getItem(DAILY_ACTIVITY_KEY) || "null"
+    );
+    if (
+      parsed &&
+      parsed.date === getLocalDateKey() &&
+      Number.isInteger(parsed.count) &&
+      parsed.count >= 0 &&
+      Array.isArray(parsed.productIds)
+    ) {
+      return parsed;
+    }
+  } catch (error) {
+    console.error("Load daily product popularity error:", error);
+  }
+
+  return { date: getLocalDateKey(), count: 0, productIds: [] };
+}
+
+function writeDailyActivity(activity) {
+  try {
+    window.localStorage.setItem(DAILY_ACTIVITY_KEY, JSON.stringify(activity));
+  } catch (error) {
+    console.error("Save daily product popularity error:", error);
+  }
+}
+
+function scheduleDailyPopularityIncrease() {
+  if (dailyActivityTimer !== null) return;
+
+  const activity = readDailyActivity();
+  if (activity.count >= 2) return;
+
+  const delay = 60 * 60 * 1000 + Math.floor(Math.random() * 61 * 60 * 1000);
+
+  dailyActivityTimer = window.setTimeout(() => {
+    dailyActivityTimer = null;
+
+    const latestActivity = readDailyActivity();
+    if (latestActivity.count >= 2) return;
+
+    const candidates = [...popularityListeners.entries()]
+      .filter(([, listeners]) => listeners.size > 0)
+      .map(([productId, listeners]) => ({
+        productId,
+        listeners,
+        options: popularityOptions.get(productId),
+      }))
+      .filter(
+        ({ productId }) =>
+          !latestActivity.productIds.includes(productId)
+      );
+
+    if (candidates.length) {
+      const candidate =
+        candidates[Math.floor(Math.random() * candidates.length)];
+      const count = increaseProductPopularity(
+        candidate.productId,
+        candidate.options
+      );
+      candidate.listeners.forEach((listener) => listener(count));
+
+      writeDailyActivity({
+        date: getLocalDateKey(),
+        count: latestActivity.count + 1,
+        productIds: [
+          ...latestActivity.productIds,
+          candidate.productId,
+        ],
+      });
+    }
+
+    if (readDailyActivity().count < 2) {
+      scheduleDailyPopularityIncrease();
+    }
+  }, delay);
 }
 
 function getStoredCount(productId, counts) {
@@ -66,44 +156,25 @@ export function increaseProductPopularity(productId, options) {
   const currentCount =
     getStoredCount(productId, counts) ??
     getProductPopularity(productId, options);
-  const nextCount = currentCount + 1 + Math.floor(Math.random() * 3);
+  const nextCount = currentCount + 1;
 
   writeCounts({ ...readCounts(), [productId]: nextCount });
   return nextCount;
-}
-
-function schedulePopularityIncrease(productId, options) {
-  const timerId = window.setTimeout(() => {
-    popularityTimers.delete(productId);
-
-    const count = increaseProductPopularity(productId, options);
-    const listeners = popularityListeners.get(productId);
-    listeners?.forEach((listener) => listener(count));
-
-    if (listeners?.size) {
-      schedulePopularityIncrease(productId, options);
-    }
-  }, 7000 + Math.floor(Math.random() * 8001));
-
-  popularityTimers.set(productId, timerId);
 }
 
 export function subscribeToProductPopularity(productId, options, listener) {
   const listeners = popularityListeners.get(productId) || new Set();
   listeners.add(listener);
   popularityListeners.set(productId, listeners);
-
-  if (!popularityTimers.has(productId)) {
-    schedulePopularityIncrease(productId, options);
-  }
+  popularityOptions.set(productId, options);
+  scheduleDailyPopularityIncrease();
 
   return () => {
     listeners.delete(listener);
 
     if (!listeners.size) {
       popularityListeners.delete(productId);
-      window.clearTimeout(popularityTimers.get(productId));
-      popularityTimers.delete(productId);
+      popularityOptions.delete(productId);
     }
   };
 }
