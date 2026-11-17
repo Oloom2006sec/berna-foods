@@ -135,6 +135,32 @@
   font-size: 11px;
 }
 
+.products-sort-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  color: #766e63;
+  font-size: 12px;
+}
+
+.products-sort-row select {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #e7dac5;
+  border-radius: 10px;
+  background: #fff;
+  color: #292723;
+  font: inherit;
+}
+
+.products-sales-note {
+  margin: -4px 0 14px;
+  color: #8b7050;
+  font-size: 12px;
+}
+
 /* =========================================================
    PRODUCTS GRID
    ========================================================= */
@@ -537,6 +563,10 @@
 
   .category-filters {
     justify-content: center;
+  }
+
+  .products-sort-row {
+    justify-content: flex-start;
   }
 }
 

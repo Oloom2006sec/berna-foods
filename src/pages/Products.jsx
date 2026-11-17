@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import ProductCard from "../components/ProductCard";
 import { groupProducts } from "../utils/productGroups";
 import { useStoreSettings } from "../context/StoreSettingsContext";
+import { getPublicProductSales } from "../services/productSalesService";
 import "./products-styles.css";
 
 export default function Products() {
@@ -18,6 +19,36 @@ export default function Products() {
 
   const [category, setCategory] =
     useState("الكل");
+
+  const [sortBy, setSortBy] =
+    useState("featured");
+
+  const [productSales, setProductSales] =
+    useState([]);
+
+  const [salesError, setSalesError] =
+    useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    getPublicProductSales()
+      .then((sales) => {
+        if (active) {
+          setProductSales(sales);
+        }
+      })
+      .catch((error) => {
+        console.error("Load public product sales error:", error);
+        if (active) {
+          setSalesError(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   /*
     ============================================================
@@ -54,7 +85,14 @@ export default function Products() {
     const normalizedSearch =
       search.trim();
 
-    return groupedProducts.filter(
+    const salesByName = new Map(
+      productSales.map((item) => [
+        item.product_name,
+        item,
+      ])
+    );
+
+    const filteredProducts = groupedProducts.filter(
       (product) => {
         const matchesSearch =
           !normalizedSearch ||
@@ -76,10 +114,47 @@ export default function Products() {
         );
       }
     );
+
+    if (sortBy === "featured") {
+      return filteredProducts;
+    }
+
+    return [...filteredProducts].sort((a, b) => {
+      const salesA = salesByName.get(a.name);
+      const salesB = salesByName.get(b.name);
+
+      if (sortBy === "best-selling") {
+        return (
+          Number(salesB?.units_sold || 0) -
+            Number(salesA?.units_sold || 0) ||
+          a.name.localeCompare(b.name, "ar")
+        );
+      }
+
+      if (sortBy === "most-ordered") {
+        return (
+          Number(salesB?.order_count || 0) -
+            Number(salesA?.order_count || 0) ||
+          a.name.localeCompare(b.name, "ar")
+        );
+      }
+
+      if (sortBy === "price-ascending") {
+        return a.minPrice - b.minPrice;
+      }
+
+      if (sortBy === "price-descending") {
+        return b.maxPrice - a.maxPrice;
+      }
+
+      return a.name.localeCompare(b.name, "ar");
+    });
   }, [
     groupedProducts,
     search,
     category,
+    productSales,
+    sortBy,
   ]);
 
   /*
@@ -176,6 +251,41 @@ export default function Products() {
           </div>
 
         </section>
+
+        <div className="products-sort-row">
+          <label htmlFor="products-sort">
+            ترتيب حسب
+          </label>
+          <select
+            id="products-sort"
+            value={sortBy}
+            onChange={(event) =>
+              setSortBy(event.target.value)
+            }
+          >
+            <option value="featured">الترتيب الافتراضي</option>
+            <option value="best-selling">الأكثر مبيعًا</option>
+            <option value="most-ordered">الأكثر طلبًا</option>
+            <option value="price-ascending">السعر: من الأقل للأعلى</option>
+            <option value="price-descending">السعر: من الأعلى للأقل</option>
+            <option value="name">الاسم: أبجديًا</option>
+          </select>
+        </div>
+
+        {salesError && sortBy !== "featured" && (
+          <p className="products-sales-note" role="status">
+            تعذر تحميل ترتيب المبيعات حاليًا؛ يمكنك استخدام ترتيب السعر أو الاسم.
+          </p>
+        )}
+
+        {!salesError &&
+          productSales.length === 0 &&
+          (sortBy === "best-selling" ||
+            sortBy === "most-ordered") && (
+            <p className="products-sales-note" role="status">
+              لا توجد بيانات مبيعات كافية لترتيب المنتجات بعد.
+            </p>
+          )}
 
         {/* ====================================================
             RESULT INFO

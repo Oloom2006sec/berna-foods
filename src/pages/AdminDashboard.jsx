@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { getOrders } from "../services/orderService";
+import "./admin-dashboard.css";
 
 const statuses = [
   {
@@ -24,7 +25,100 @@ const statuses = [
     label: "تم التسليم",
     icon: "✅",
   },
+  {
+    key: "cancelled",
+    label: "ملغي",
+    icon: "❌",
+  },
 ];
+
+const paymentStatuses = [
+  ["deposit_required", "جدية الحجز مطلوبة"],
+  ["deposit_pending", "في انتظار مراجعة جدية الحجز"],
+  ["deposit_paid", "تم دفع جدية الحجز"],
+  ["fully_paid", "مدفوع بالكامل"],
+];
+
+function buildProductReport(orders) {
+  const productsByName = new Map();
+
+  orders.forEach((order) => {
+    if (order.status === "cancelled" || !Array.isArray(order.items)) {
+      return;
+    }
+
+    order.items.forEach((item) => {
+      const orderQuantity = Number(item.quantity);
+      const quantity =
+        Number.isFinite(orderQuantity) && orderQuantity > 0
+          ? orderQuantity
+          : 1;
+      const components = Array.isArray(item.bundleItems)
+        ? item.bundleItems
+        : [];
+      const orderProducts = components.length
+        ? components.map((component) => ({
+            name: component.name,
+            quantity:
+              quantity *
+              (Number(component.quantity) > 0
+                ? Number(component.quantity)
+                : 1),
+          }))
+        : [{ name: item.name, quantity }];
+
+      orderProducts.forEach((product) => {
+        if (!product.name) return;
+
+        const entry = productsByName.get(product.name) || {
+          name: product.name,
+          units: 0,
+          orders: new Set(),
+        };
+        if (order.status === "delivered") {
+          entry.units += product.quantity;
+        }
+        entry.orders.add(order.order_number);
+        productsByName.set(product.name, entry);
+      });
+    });
+  });
+
+  return [...productsByName.values()]
+    .map((product) => ({
+      ...product,
+      orders: product.orders.size,
+    }))
+    .sort(
+      (a, b) =>
+        b.units - a.units ||
+        b.orders - a.orders ||
+        a.name.localeCompare(b.name, "ar")
+    )
+    .slice(0, 8);
+}
+
+function buildGovernorateReport(orders) {
+  const report = new Map();
+
+  orders.forEach((order) => {
+    if (order.status === "cancelled") return;
+
+    const name = order.governorate?.trim() || "غير محدد";
+    const entry = report.get(name) || {
+      name,
+      orders: 0,
+      sales: 0,
+    };
+    entry.orders += 1;
+    entry.sales += Number(order.total) || 0;
+    report.set(name, entry);
+  });
+
+  return [...report.values()].sort(
+    (a, b) => b.orders - a.orders || b.sales - a.sales
+  );
+}
 
 export default function AdminDashboard() {
   const [orders, setOrders] =
@@ -35,6 +129,24 @@ export default function AdminDashboard() {
 
   const [error, setError] =
     useState("");
+
+  const [period, setPeriod] =
+    useState("30");
+
+  const [startDate, setStartDate] =
+    useState("");
+
+  const [endDate, setEndDate] =
+    useState("");
+
+  const [statusFilter, setStatusFilter] =
+    useState("all");
+
+  const [paymentFilter, setPaymentFilter] =
+    useState("all");
+
+  const [governorateFilter, setGovernorateFilter] =
+    useState("all");
 
   async function loadOrders() {
     try {
@@ -70,36 +182,94 @@ export default function AdminDashboard() {
     loadOrders();
   }, []);
 
-  const totalOrders =
-    orders.length;
+  const governorates = useMemo(
+    () =>
+      [...new Set(
+        orders
+          .map((order) => order.governorate?.trim())
+          .filter(Boolean)
+      )].sort((a, b) => a.localeCompare(b, "ar")),
+    [orders]
+  );
+
+  const filteredOrders = useMemo(() => {
+    const now = new Date();
+    let start = null;
+    let end = null;
+
+    if (period === "custom") {
+      start = startDate
+        ? new Date(`${startDate}T00:00:00`)
+        : null;
+      end = endDate
+        ? new Date(`${endDate}T23:59:59.999`)
+        : null;
+    } else if (period !== "all") {
+      start = new Date(now);
+      start.setDate(
+        start.getDate() - Number(period) + 1
+      );
+      start.setHours(0, 0, 0, 0);
+    }
+
+    return orders.filter((order) => {
+      const createdAt = new Date(order.created_at);
+
+      if (
+        (start && (!Number.isFinite(createdAt.getTime()) || createdAt < start)) ||
+        (end && (!Number.isFinite(createdAt.getTime()) || createdAt > end))
+      ) {
+        return false;
+      }
+
+      return (
+        (statusFilter === "all" ||
+          order.status === statusFilter) &&
+        (paymentFilter === "all" ||
+          order.payment_status === paymentFilter) &&
+        (governorateFilter === "all" ||
+          order.governorate === governorateFilter)
+      );
+    });
+  }, [
+    orders,
+    period,
+    startDate,
+    endDate,
+    statusFilter,
+    paymentFilter,
+    governorateFilter,
+  ]);
+
+  const totalOrders = filteredOrders.length;
 
   const newOrders =
-    orders.filter(
+    filteredOrders.filter(
       (order) =>
         order.status === "new"
     ).length;
 
   const preparingOrders =
-    orders.filter(
+    filteredOrders.filter(
       (order) =>
         order.status === "preparing"
     ).length;
 
   const deliveryOrders =
-    orders.filter(
+    filteredOrders.filter(
       (order) =>
         order.status ===
         "out_for_delivery"
     ).length;
 
   const deliveredOrders =
-    orders.filter(
+    filteredOrders.filter(
       (order) =>
         order.status === "delivered"
     ).length;
 
   const validOrders =
-    orders.filter(
+    filteredOrders.filter(
       (order) =>
         order.status !==
         "cancelled"
@@ -136,10 +306,7 @@ export default function AdminDashboard() {
       0
     );
 
-  const recentOrders = [
-    ...orders,
-  ]
-    .sort(
+  const recentOrders = [...filteredOrders].sort(
       (a, b) =>
         new Date(
           b.created_at
@@ -149,6 +316,16 @@ export default function AdminDashboard() {
         )
     )
     .slice(0, 5);
+
+  const productReport = useMemo(
+    () => buildProductReport(filteredOrders),
+    [filteredOrders]
+  );
+
+  const governorateReport = useMemo(
+    () => buildGovernorateReport(filteredOrders),
+    [filteredOrders]
+  );
 
   function formatDate(date) {
     if (!date) return "-";
@@ -189,6 +366,50 @@ export default function AdminDashboard() {
       status ||
       "غير معروف"
     );
+  }
+
+  function exportReport() {
+    const headers = [
+      "رقم الطلب",
+      "التاريخ",
+      "حالة الطلب",
+      "حالة الدفع",
+      "المحافظة",
+      "الإجمالي",
+      "المحصل",
+      "المتبقي",
+    ];
+    const rows = filteredOrders.map((order) => [
+      order.order_number,
+      order.created_at,
+      getStatusLabel(order.status),
+      paymentStatuses.find(
+        ([key]) => key === order.payment_status
+      )?.[1] || order.payment_status || "",
+      order.governorate || "",
+      order.total || 0,
+      order.deposit_paid || 0,
+      order.remaining_amount || 0,
+    ]);
+    const csv = [headers, ...rows]
+      .map((row) =>
+        row
+          .map((value) =>
+            `"${String(value ?? "").replaceAll('"', '""')}"`
+          )
+          .join(",")
+      )
+      .join("\r\n");
+    const url = URL.createObjectURL(
+      new Blob(["\uFEFF", csv], {
+        type: "text/csv;charset=utf-8",
+      })
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "berna-orders-report.csv";
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   if (loading) {
@@ -270,6 +491,15 @@ export default function AdminDashboard() {
               🏠 العودة للمتجر
             </Link>
 
+            <button
+              type="button"
+              className="dashboard-refresh-btn"
+              onClick={loadOrders}
+              disabled={loading}
+            >
+              ↻ تحديث البيانات
+            </button>
+
           </div>
 
         </div>
@@ -281,6 +511,114 @@ export default function AdminDashboard() {
             {error}
           </div>
         )}
+
+        <section
+          className="dashboard-report-filters"
+          aria-label="فلاتر التقارير"
+        >
+          <div className="dashboard-report-filters-heading">
+            <div>
+              <h2>تصفية التقارير</h2>
+              <p>الأرقام والتقارير أدناه تتغير حسب الاختيارات.</p>
+            </div>
+            <button
+              type="button"
+              className="dashboard-export-btn"
+              onClick={exportReport}
+              disabled={filteredOrders.length === 0}
+            >
+              تنزيل الطلبات CSV
+            </button>
+          </div>
+
+          <div className="dashboard-filter-controls">
+            <label>
+              الفترة
+              <select
+                value={period}
+                onChange={(event) => setPeriod(event.target.value)}
+              >
+                <option value="7">آخر 7 أيام</option>
+                <option value="30">آخر 30 يومًا</option>
+                <option value="90">آخر 90 يومًا</option>
+                <option value="all">كل الفترات</option>
+                <option value="custom">فترة مخصصة</option>
+              </select>
+            </label>
+
+            {period === "custom" && (
+              <>
+                <label>
+                  من تاريخ
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(event) => setStartDate(event.target.value)}
+                  />
+                </label>
+                <label>
+                  إلى تاريخ
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(event) => setEndDate(event.target.value)}
+                  />
+                </label>
+              </>
+            )}
+
+            <label>
+              حالة الطلب
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+              >
+                <option value="all">كل الحالات</option>
+                {statuses.map((status) => (
+                  <option value={status.key} key={status.key}>
+                    {status.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              حالة الدفع
+              <select
+                value={paymentFilter}
+                onChange={(event) => setPaymentFilter(event.target.value)}
+              >
+                <option value="all">كل حالات الدفع</option>
+                {paymentStatuses.map(([key, label]) => (
+                  <option value={key} key={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              المحافظة
+              <select
+                value={governorateFilter}
+                onChange={(event) =>
+                  setGovernorateFilter(event.target.value)
+                }
+              >
+                <option value="all">كل المحافظات</option>
+                {governorates.map((governorate) => (
+                  <option value={governorate} key={governorate}>
+                    {governorate}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <p className="dashboard-filter-result">
+            نتائج التقرير: <strong>{totalOrders}</strong> طلب
+          </p>
+        </section>
 
         {/* ================= STATISTICS ================= */}
 
@@ -479,7 +817,7 @@ export default function AdminDashboard() {
               (status) => {
 
                 const count =
-                  orders.filter(
+                  filteredOrders.filter(
                     (order) =>
                       order.status ===
                       status.key
@@ -545,6 +883,74 @@ export default function AdminDashboard() {
 
           </div>
 
+        </section>
+
+        <section className="dashboard-report-grid">
+          <div className="dashboard-report-card">
+            <div className="section-heading">
+              <div>
+                <h2>الأكثر مبيعًا</h2>
+                <p>عدد الوحدات في الطلبات المسلّمة ضمن الفلاتر.</p>
+              </div>
+            </div>
+            {productReport.length ? (
+              <div className="dashboard-report-table-wrap">
+                <table className="dashboard-report-table">
+                  <thead>
+                    <tr>
+                      <th>المنتج</th>
+                      <th>الوحدات</th>
+                      <th>الطلبات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productReport.map((product) => (
+                      <tr key={product.name}>
+                        <td>{product.name}</td>
+                        <td>{product.units}</td>
+                        <td>{product.orders}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="dashboard-report-empty">لا توجد بيانات أصناف لهذه الفلاتر.</p>
+            )}
+          </div>
+
+          <div className="dashboard-report-card">
+            <div className="section-heading">
+              <div>
+                <h2>ملخص المحافظات</h2>
+                <p>الطلبات والمبيعات لكل محافظة ضمن الفلاتر.</p>
+              </div>
+            </div>
+            {governorateReport.length ? (
+              <div className="dashboard-report-table-wrap">
+                <table className="dashboard-report-table">
+                  <thead>
+                    <tr>
+                      <th>المحافظة</th>
+                      <th>الطلبات</th>
+                      <th>المبيعات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {governorateReport.map((governorate) => (
+                      <tr key={governorate.name}>
+                        <td>{governorate.name}</td>
+                        <td>{governorate.orders}</td>
+                        <td>{formatMoney(governorate.sales)} ج.م</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="dashboard-report-empty">لا توجد بيانات محافظات لهذه الفلاتر.</p>
+            )}
+          </div>
         </section>
 
         {/* ================= RECENT ORDERS ================= */}
