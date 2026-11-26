@@ -629,3 +629,13 @@
     flex-direction: column;
   }
 }
+
+.admin-gift-add { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+.admin-gift-add select { flex: 1; min-width: 220px; padding: 8px; }
+.admin-gift-list { display: grid; gap: 12px; }
+.admin-gift-row { border: 1px solid #e7dfc8; border-radius: 12px; padding: 14px; background: #fffef9; }
+.admin-gift-fields { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; margin-top: 10px; }
+.admin-gift-fields label { display: grid; gap: 4px; font-size: 13px; }
+.admin-gift-fields input[type="number"] { width: 70px; }
+.admin-gift-ok { color: #1f5c3a; font-weight: 700; margin: 10px 0 0; }
+.admin-gift-bad { color: #a5412b; font-weight: 700; margin: 10px 0 0; }

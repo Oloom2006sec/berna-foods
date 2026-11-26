@@ -13,6 +13,7 @@ import {
   saveStoreSettings as persistStoreSettings,
 } from "../services/storeSettingsService";
 import { setProductOffers } from "../utils/promotionPricing";
+import { setGiftOffers } from "../utils/giftOffers";
 
 const StoreSettingsContext = createContext(null);
 
@@ -32,6 +33,7 @@ function applyStoreSettings(settings) {
   }
 
   setProductOffers(settings.productOffers);
+  setGiftOffers(settings.giftOffers);
 }
 
 export function StoreSettingsProvider({ children }) {

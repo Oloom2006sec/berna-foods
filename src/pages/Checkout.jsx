@@ -1169,7 +1169,11 @@ export default function Checkout() {
         }
 
         const variant = item.weight ? ` (${item.weight})` : "";
-        return `• ${item.name}${variant} × ${quantity} — ${price}`;
+        const gift =
+          Number(item.giftQuantity) > 0
+            ? `\n  🎁 هدية: ${item.giftQuantity} × ${item.name}${variant} — مجانًا`
+            : "";
+        return `• ${item.name}${variant} × ${quantity} — ${price}${gift}`;
       })
       .join("\n");
 
@@ -2628,9 +2632,16 @@ return (
 
                           </small>
 
-                          {item.promotionLabel && (
+                          {item.promotionLabel && !item.giftQuantity && (
                             <small className="checkout-promotion-label">
                               {item.promotionLabel} · {item.discountPercent}%
+                            </small>
+                          )}
+
+                          {item.giftQuantity > 0 && (
+                            <small className="checkout-gift-line">
+                              🎁 {item.promotionLabel} · هدية: {item.giftQuantity} × {item.name}
+                              {item.weight ? ` (${item.weight})` : ""} — مجانًا (0 {STORE_CONFIG.currency})
                             </small>
                           )}
 

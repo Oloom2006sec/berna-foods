@@ -2,13 +2,14 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { products } from "../data/products";
 import { useStoreSettings } from "../context/StoreSettingsContext";
-import { getDefaultStoreSettings } from "../services/storeSettingsService";
+import { checkGiftFloor } from "../utils/giftOffers";
 import "./admin-catalog.css";
 
 const tabs = [
   { id: "prices", label: "الأسعار" },
   { id: "individual", label: "العروض المنفردة" },
   { id: "bundles", label: "عروض المجموعات" },
+  { id: "gifts", label: "عروض الهدية" },
 ];
 
 function createBundleDraft() {
@@ -75,16 +76,52 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
   const [saveError, setSaveError] = useState("");
   const [success, setSuccess] = useState("");
   const [saving, setSaving] = useState(false);
+  const [giftNewSku, setGiftNewSku] = useState("");
+
+  const giftOffers = draft.giftOffers || [];
+
+  function updateGift(sku, updates) {
+    setDraft((current) => ({
+      ...current,
+      giftOffers: (current.giftOffers || []).map((gift) =>
+        gift.sku === sku ? { ...gift, ...updates } : gift
+      ),
+    }));
+    setSuccess("");
+  }
+
+  function addGift() {
+    if (!giftNewSku || giftOffers.some((gift) => gift.sku === giftNewSku)) {
+      return;
+    }
+    setDraft((current) => ({
+      ...current,
+      giftOffers: [
+        ...(current.giftOffers || []),
+        {
+          sku: giftNewSku,
+          buyQty: 3,
+          freeQty: 1,
+          status: "paused",
+          startDate: "",
+          endDate: "",
+        },
+      ],
+    }));
+    setGiftNewSku("");
+    setSuccess("");
+  }
+
+  function removeGift(sku) {
+    setDraft((current) => ({
+      ...current,
+      giftOffers: (current.giftOffers || []).filter((gift) => gift.sku !== sku),
+    }));
+    setSuccess("");
+  }
 
   const productBySku = useMemo(
     () => new Map(products.map((product) => [product.sku, product])),
-    []
-  );
-  const approvedPricesBySku = useMemo(
-    () =>
-      new Map(
-        getDefaultStoreSettings().prices.map((price) => [price.sku, price])
-      ),
     []
   );
   const orderedProducts = useMemo(
@@ -482,7 +519,7 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
                           <td>
                             <input
                               type="number"
-                              min={approvedPricesBySku.get(price.sku)?.minOfferPrice || 0.01}
+                              min="0.01"
                               step="0.01"
                               value={price.minOfferPrice}
                               aria-label={`الحد الأدنى لسعر ${product.name} ${product.weight}`}
@@ -960,6 +997,135 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
                     </article>
                   ))
                 )}
+              </div>
+            </section>
+          )}
+
+          {activeTab === "gifts" && (
+            <section className="admin-catalog-panel">
+              <div className="admin-catalog-panel-heading">
+                <div>
+                  <h2>عروض الهدية</h2>
+                  <p>اشترِ كمية واحصل على كمية مجانًا لنفس الصنف. المدفوع يُحسب بالسعر العادي ولا يُجمع مع خصم Black Friday على نفس الصنف، ويجب أن يظل المبلغ المدفوع أعلى من الحد الأدنى لكل الوحدات (المدفوعة والمجانية).</p>
+                </div>
+                <span>{giftOffers.length} عرض</span>
+              </div>
+              <div className="admin-gift-add">
+                <select
+                  value={giftNewSku}
+                  aria-label="اختر الصنف لعرض الهدية"
+                  onChange={(event) => setGiftNewSku(event.target.value)}
+                >
+                  <option value="">اختر الصنف والوزن</option>
+                  {orderedProducts
+                    .filter((product) => !giftOffers.some((gift) => gift.sku === product.sku))
+                    .map((product) => (
+                      <option key={product.sku} value={product.sku}>
+                        {product.name} — {product.weight} · {product.packageType}
+                      </option>
+                    ))}
+                </select>
+                <button type="button" onClick={addGift} disabled={!giftNewSku}>
+                  إضافة عرض هدية
+                </button>
+              </div>
+              <div className="admin-gift-list">
+                {giftOffers.length === 0 && (
+                  <p>لا توجد عروض هدية بعد.</p>
+                )}
+                {giftOffers.map((gift) => {
+                  const product = productBySku.get(gift.sku);
+                  const price = draft.prices.find((entry) => entry.sku === gift.sku);
+                  const check =
+                    product && price
+                      ? checkGiftFloor(gift, price.price, price.minOfferPrice)
+                      : null;
+                  return (
+                    <article className="admin-gift-row" key={gift.sku}>
+                      <strong>
+                        {product?.name} — {product?.weight} · {product?.packageType}
+                      </strong>
+                      <div className="admin-gift-fields">
+                        <label>
+                          اشترِ
+                          <input
+                            type="number"
+                            min="1"
+                            max="99"
+                            step="1"
+                            value={gift.buyQty}
+                            aria-label={`كمية الشراء ${product?.name}`}
+                            onChange={(event) =>
+                              updateGift(gift.sku, { buyQty: Number(event.target.value) })
+                            }
+                          />
+                        </label>
+                        <label>
+                          مجانًا
+                          <input
+                            type="number"
+                            min="1"
+                            max="99"
+                            step="1"
+                            value={gift.freeQty}
+                            aria-label={`كمية الهدية ${product?.name}`}
+                            onChange={(event) =>
+                              updateGift(gift.sku, { freeQty: Number(event.target.value) })
+                            }
+                          />
+                        </label>
+                        <label>
+                          الحالة
+                          <select
+                            value={gift.status}
+                            onChange={(event) =>
+                              updateGift(gift.sku, { status: event.target.value })
+                            }
+                          >
+                            <option value="active">نشط</option>
+                            <option value="paused">متوقف</option>
+                          </select>
+                        </label>
+                        <label>
+                          من تاريخ
+                          <input
+                            type="date"
+                            value={gift.startDate || ""}
+                            onChange={(event) =>
+                              updateGift(gift.sku, { startDate: event.target.value })
+                            }
+                          />
+                        </label>
+                        <label>
+                          إلى تاريخ
+                          <input
+                            type="date"
+                            value={gift.endDate || ""}
+                            onChange={(event) =>
+                              updateGift(gift.sku, { endDate: event.target.value })
+                            }
+                          />
+                        </label>
+                        <button type="button" onClick={() => removeGift(gift.sku)}>
+                          حذف
+                        </button>
+                      </div>
+                      {check && (
+                        <p
+                          className={check.ok ? "admin-gift-ok" : "admin-gift-bad"}
+                          role={check.ok ? undefined : "alert"}
+                        >
+                          {check.ok ? "✅ " : "❌ "}
+                          المدفوع {formatMoney(check.charged)} ج.م مقابل الحد الأدنى للكمية
+                          الكلية {formatMoney(check.minimumTotal)} ج.م · سعر الوحدة الفعلي{" "}
+                          {formatMoney(check.perUnit)} ج.م
+                          {!check.ok &&
+                            ` · أقصى كمية هدية مسموحة: ${check.maxFreeQty}`}
+                        </p>
+                      )}
+                    </article>
+                  );
+                })}
               </div>
             </section>
           )}

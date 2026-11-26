@@ -1,3 +1,4 @@
+import { getGiftOfferForSku } from "../utils/giftOffers";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -115,6 +116,9 @@ export default function ProductCard({ product }) {
         selectedVariant.price,
         selectedVariant.minOfferPrice
       )
+    : null;
+  const giftOffer = selectedVariant
+    ? getGiftOfferForSku(selectedVariant.sku)
     : null;
   const reviews = getProductDetails(product.name)?.reviews || [];
   const averageRating = reviews.length
@@ -300,6 +304,11 @@ export default function ProductCard({ product }) {
       {promotion && (
         <span className="product-card-promo-tag">
           خصم {promotion.discountPercent}%
+        </span>
+      )}
+      {giftOffer && (
+        <span className="product-card-gift-tag">
+          🎁 اشترِ {giftOffer.buyQty} واحصل على {giftOffer.freeQty} مجانًا
         </span>
       )}
       <ProductPopularityBadge

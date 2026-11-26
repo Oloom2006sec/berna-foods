@@ -2833,3 +2833,23 @@ body {
     margin-top: 10px;
   }
 }
+
+.product-card-gift-tag {
+  position: absolute;
+  bottom: 10px;
+  inset-inline-start: 10px;
+  background: #f3e3a3;
+  color: #4a3500;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  z-index: 3;
+}
+
+.checkout-gift-line {
+  display: block;
+  color: #1f5c3a;
+  font-weight: 700;
+  margin-top: 4px;
+}
