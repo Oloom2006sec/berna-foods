@@ -576,7 +576,7 @@ export function calculateCartWeightKg(
           0,
           Number(
             item?.quantity || 0
-          )
+          ) + Number(item?.giftQuantity || 0)
         );
 
       return (

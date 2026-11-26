@@ -1,6 +1,7 @@
 import { supabase } from "../lib/supabase";
 import { products } from "../data/products";
 import { productOffers } from "../data/homePromotions";
+import { checkGiftFloor } from "../utils/giftOffers";
 
 const SETTINGS_ROW_ID = "catalog";
 
@@ -47,6 +48,7 @@ const defaultStoreSettings = (() => {
           ?.discountPercent || 0,
     })),
     bundleOffers: [],
+    giftOffers: [],
   };
 })();
 
@@ -112,7 +114,6 @@ function validateSettings(settings) {
       !Number.isFinite(minOfferPrice) ||
       regularPrice <= 0 ||
       minOfferPrice <= 0 ||
-      minOfferPrice < defaults.minOfferPrice ||
       minOfferPrice > regularPrice
     ) {
       throw new Error(`سعر غير صالح للصنف ${sku}`);
@@ -271,10 +272,56 @@ function validateSettings(settings) {
     })
     .filter(Boolean);
 
+  const productBySkuForGift = new Map(products.map((product) => [product.sku, product]));
+  const savedGifts = Array.isArray(settings.giftOffers)
+    ? settings.giftOffers
+    : [];
+  const seenGiftSkus = new Set();
+  const giftOffers = savedGifts.map((gift) => {
+    const sku = String(gift.sku || "");
+    const price = priceBySku.get(sku);
+    const buyQty = Number(gift.buyQty);
+    const freeQty = Number(gift.freeQty);
+    const status = gift.status === "active" ? "active" : "paused";
+    const startDate = String(gift.startDate || "");
+    const endDate = String(gift.endDate || "");
+
+    if (
+      !price ||
+      seenGiftSkus.has(sku) ||
+      !Number.isInteger(buyQty) ||
+      !Number.isInteger(freeQty) ||
+      buyQty < 1 ||
+      buyQty > 99 ||
+      freeQty < 1 ||
+      freeQty > 99 ||
+      !isValidDate(startDate) ||
+      !isValidDate(endDate) ||
+      (startDate && endDate && endDate < startDate)
+    ) {
+      throw new Error(`بيانات عرض الهدية للصنف ${sku} غير صالحة.`);
+    }
+    seenGiftSkus.add(sku);
+
+    const check = checkGiftFloor(
+      { buyQty, freeQty },
+      price.price,
+      price.minOfferPrice
+    );
+    if (!check.ok) {
+      throw new Error(
+        `عرض الهدية لصنف "${productBySkuForGift.get(sku)?.name || sku} ${productBySkuForGift.get(sku)?.weight || ""}" يكسر الحد الأدنى: المدفوع ${check.charged.toFixed(2)} أقل من الحد الأدنى للكمية الكلية ${check.minimumTotal.toFixed(2)}. أقصى كمية هدية ${check.maxFreeQty}.`
+      );
+    }
+
+    return { sku, buyQty, freeQty, status, startDate, endDate };
+  });
+
   return {
     prices: normalizedPrices,
     productOffers: normalizedOffers,
     bundleOffers,
+    giftOffers,
   };
 }
 

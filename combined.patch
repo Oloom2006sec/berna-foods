@@ -1,0 +1,715 @@
+diff --git a/src/berna-redesign.css b/src/berna-redesign.css
+index 58b01e0..40f20b8 100644
+--- a/src/berna-redesign.css
++++ b/src/berna-redesign.css
+@@ -2833,3 +2833,23 @@ body {
+     margin-top: 10px;
+   }
+ }
++
++.product-card-gift-tag {
++  position: absolute;
++  bottom: 10px;
++  inset-inline-start: 10px;
++  background: #f3e3a3;
++  color: #4a3500;
++  border-radius: 999px;
++  padding: 4px 10px;
++  font-size: 12px;
++  font-weight: 700;
++  z-index: 3;
++}
++
++.checkout-gift-line {
++  display: block;
++  color: #1f5c3a;
++  font-weight: 700;
++  margin-top: 4px;
++}
+diff --git a/src/components/ProductCard.jsx b/src/components/ProductCard.jsx
+index 211f22f..23e5c74 100644
+--- a/src/components/ProductCard.jsx
++++ b/src/components/ProductCard.jsx
+@@ -1,3 +1,4 @@
++import { getGiftOfferForSku } from "../utils/giftOffers";
+ import { useMemo, useState } from "react";
+ import { Link } from "react-router-dom";
+ 
+@@ -116,6 +117,9 @@ export default function ProductCard({ product }) {
+         selectedVariant.minOfferPrice
+       )
+     : null;
++  const giftOffer = selectedVariant
++    ? getGiftOfferForSku(selectedVariant.sku)
++    : null;
+   const reviews = getProductDetails(product.name)?.reviews || [];
+   const averageRating = reviews.length
+     ? (
+@@ -302,6 +306,11 @@ export default function ProductCard({ product }) {
+           خصم {promotion.discountPercent}%
+         </span>
+       )}
++      {giftOffer && (
++        <span className="product-card-gift-tag">
++          🎁 اشترِ {giftOffer.buyQty} واحصل على {giftOffer.freeQty} مجانًا
++        </span>
++      )}
+       <ProductPopularityBadge
+         productId={product.id}
+         category={product.category}
+diff --git a/src/context/CartContext.jsx b/src/context/CartContext.jsx
+index 0ff88af..058faa7 100644
+--- a/src/context/CartContext.jsx
++++ b/src/context/CartContext.jsx
+@@ -10,6 +10,7 @@ import { products } from "../data/products";
+ import { groupProducts } from "../utils/productGroups";
+ import { useStoreSettings } from "./StoreSettingsContext";
+ import { trackCartAddition } from "../utils/metaPixel";
++import { getGiftForLine } from "../utils/giftOffers";
+ 
+ const CartContext = createContext(null);
+ 
+@@ -194,9 +195,41 @@ function normalizeItem(item) {
+   };
+ }
+ 
++// Adds the free "gift" units on top of the paid quantity. Paid units are
++// charged at the regular price (the Black Friday single discount does not
++// stack with a gift offer on the same item).
++function withGift(item) {
++  if (item.bundleOfferId || item.bundleItems) {
++    return { ...item, giftQuantity: 0 };
++  }
++  const gift = getGiftForLine(
++    item.sku,
++    item.quantity,
++    item.originalPrice,
++    item.minOfferPrice
++  );
++  if (!gift) {
++    return { ...item, giftQuantity: 0 };
++  }
++  return {
++    ...item,
++    price: Number(item.originalPrice),
++    discountPercent: 0,
++    promotionId: "gift",
++    promotionLabel: gift.label,
++    giftQuantity: gift.giftQuantity,
++  };
++}
++
+ export function CartProvider({ children }) {
+   const { settings } = useStoreSettings();
+-  const [cart, setCart] = useState(readCart);
++  const [rawCart, setCart] = useState(readCart);
++  const cart = useMemo(
++    () => rawCart.map(withGift),
++    // settings changes can change gift offers
++    // eslint-disable-next-line react-hooks/exhaustive-deps
++    [rawCart, settings]
++  );
+ 
+   useEffect(() => {
+     setCart((current) => current.map(normalizeItem));
+@@ -208,9 +241,9 @@ export function CartProvider({ children }) {
+   useEffect(() => {
+     localStorage.setItem(
+       STORAGE_KEY,
+-      JSON.stringify(cart)
++      JSON.stringify(rawCart)
+     );
+-  }, [cart]);
++  }, [rawCart]);
+ 
+   /*
+     Add product / exact Variant
+diff --git a/src/context/StoreSettingsContext.jsx b/src/context/StoreSettingsContext.jsx
+index 64afedf..6145d95 100644
+--- a/src/context/StoreSettingsContext.jsx
++++ b/src/context/StoreSettingsContext.jsx
+@@ -13,6 +13,7 @@ import {
+   saveStoreSettings as persistStoreSettings,
+ } from "../services/storeSettingsService";
+ import { setProductOffers } from "../utils/promotionPricing";
++import { setGiftOffers } from "../utils/giftOffers";
+ 
+ const StoreSettingsContext = createContext(null);
+ 
+@@ -32,6 +33,7 @@ function applyStoreSettings(settings) {
+   }
+ 
+   setProductOffers(settings.productOffers);
++  setGiftOffers(settings.giftOffers);
+ }
+ 
+ export function StoreSettingsProvider({ children }) {
+diff --git a/src/data/products.js b/src/data/products.js
+index fb6e45c..d52f74f 100644
+--- a/src/data/products.js
++++ b/src/data/products.js
+@@ -852,29 +852,29 @@ const products = [
+ 
+ const PRICE_BOOK = {
+   "عسل أعشاب جبلية": {
+-    1000: [450, 300],
+-    500: [225, 150],
+-    250: [112.5, 75],
++    1000: [360, 200],
++    500: [190, 100],
++    250: [110, 55],
+   },
+   "عسل الموالح": {
+-    1000: [330, 265],
+-    500: [165, 132.5],
+-    250: [82.5, 66.25],
++    1000: [270, 190],
++    500: [135, 100],
++    250: [70, 55],
+   },
+   "عسل حبة البركة": {
+-    1000: [400, 285],
+-    500: [200, 142.5],
+-    250: [100, 71.25],
++    1000: [360, 200],
++    500: [190, 100],
++    250: [110, 55],
+   },
+   "عسل البرسيم": {
+-    1000: [300, 250],
+-    500: [150, 125],
+-    250: [75, 62.5],
++    1000: [250, 185],
++    500: [125, 95],
++    250: [65, 55],
+   },
+   "عسل بالمكسرات": {
+-    1000: [350, 275],
+-    500: [175, 137.5],
+-    250: [87.5, 68.75],
++    1000: [380, 230],
++    500: [190, 130],
++    250: [100, 75],
+   },
+   "زيت الزيتون": {
+     1000: [700, 500],
+@@ -890,38 +890,38 @@ const PRICE_BOOK = {
+   "صويا صوص": {
+     250: [125, 85],
+   },
+-  طحينة: {
+-    800: [225, 175],
+-    400: [112.5, 87.5],
+-  },
+   "عسل أسود": {
+-    1000: [100, 85],
+-    500: [50, 42.5],
+-    250: [25, 21.25],
++    1000: [90, 60],
++    500: [45, 30],
++    250: [25, 18],
+   },
+   "عسل سدر مصري": {
+-    1000: [1250, 850],
+-    500: [625, 425],
+-    250: [312.5, 212.5],
++    1000: [1199, 600],
++    500: [600, 300],
++    250: [300, 175],
+   },
+   "عسل بردقوش": {
+-    1000: [400, 285],
+-    500: [200, 142.5],
+-    250: [100, 71.25],
++    1000: [360, 200],
++    500: [190, 100],
++    250: [110, 55],
+   },
+   "عسل أعشاب برية": {
+-    1000: [450, 300],
+-    500: [225, 150],
+-    250: [112.5, 75],
++    1000: [360, 200],
++    500: [190, 100],
++    250: [110, 55],
+   },
+   "مختوم فلسطيني": {
+-    1000: [700, 650],
+-    500: [350, 325],
+-    250: [175, 162.5],
++    1000: [450, 250],
++    500: [250, 150],
++    250: [150, 80],
+   },
+   "شمع عسل": {
+-    1000: [300, 250],
+-    500: [150, 125],
++    1000: [260, 180],
++    500: [130, 75],
++  },
++  طحينة: {
++    800: [225, 175],
++    400: [112, 85],
+   },
+ };
+ 
+diff --git a/src/pages/AdminCatalog.jsx b/src/pages/AdminCatalog.jsx
+index 7a77be9..173bd69 100644
+--- a/src/pages/AdminCatalog.jsx
++++ b/src/pages/AdminCatalog.jsx
+@@ -2,13 +2,14 @@ import { useMemo, useState } from "react";
+ import { Link } from "react-router-dom";
+ import { products } from "../data/products";
+ import { useStoreSettings } from "../context/StoreSettingsContext";
+-import { getDefaultStoreSettings } from "../services/storeSettingsService";
++import { checkGiftFloor } from "../utils/giftOffers";
+ import "./admin-catalog.css";
+ 
+ const tabs = [
+   { id: "prices", label: "الأسعار" },
+   { id: "individual", label: "العروض المنفردة" },
+   { id: "bundles", label: "عروض المجموعات" },
++  { id: "gifts", label: "عروض الهدية" },
+ ];
+ 
+ function createBundleDraft() {
+@@ -75,18 +76,54 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
+   const [saveError, setSaveError] = useState("");
+   const [success, setSuccess] = useState("");
+   const [saving, setSaving] = useState(false);
++  const [giftNewSku, setGiftNewSku] = useState("");
++
++  const giftOffers = draft.giftOffers || [];
++
++  function updateGift(sku, updates) {
++    setDraft((current) => ({
++      ...current,
++      giftOffers: (current.giftOffers || []).map((gift) =>
++        gift.sku === sku ? { ...gift, ...updates } : gift
++      ),
++    }));
++    setSuccess("");
++  }
++
++  function addGift() {
++    if (!giftNewSku || giftOffers.some((gift) => gift.sku === giftNewSku)) {
++      return;
++    }
++    setDraft((current) => ({
++      ...current,
++      giftOffers: [
++        ...(current.giftOffers || []),
++        {
++          sku: giftNewSku,
++          buyQty: 3,
++          freeQty: 1,
++          status: "paused",
++          startDate: "",
++          endDate: "",
++        },
++      ],
++    }));
++    setGiftNewSku("");
++    setSuccess("");
++  }
++
++  function removeGift(sku) {
++    setDraft((current) => ({
++      ...current,
++      giftOffers: (current.giftOffers || []).filter((gift) => gift.sku !== sku),
++    }));
++    setSuccess("");
++  }
+ 
+   const productBySku = useMemo(
+     () => new Map(products.map((product) => [product.sku, product])),
+     []
+   );
+-  const approvedPricesBySku = useMemo(
+-    () =>
+-      new Map(
+-        getDefaultStoreSettings().prices.map((price) => [price.sku, price])
+-      ),
+-    []
+-  );
+   const orderedProducts = useMemo(
+     () =>
+       products.filter((product) => product.available !== false).sort((a, b) =>
+@@ -482,7 +519,7 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
+                           <td>
+                             <input
+                               type="number"
+-                              min={approvedPricesBySku.get(price.sku)?.minOfferPrice || 0.01}
++                              min="0.01"
+                               step="0.01"
+                               value={price.minOfferPrice}
+                               aria-label={`الحد الأدنى لسعر ${product.name} ${product.weight}`}
+@@ -964,6 +1001,135 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
+             </section>
+           )}
+ 
++          {activeTab === "gifts" && (
++            <section className="admin-catalog-panel">
++              <div className="admin-catalog-panel-heading">
++                <div>
++                  <h2>عروض الهدية</h2>
++                  <p>اشترِ كمية واحصل على كمية مجانًا لنفس الصنف. المدفوع يُحسب بالسعر العادي ولا يُجمع مع خصم Black Friday على نفس الصنف، ويجب أن يظل المبلغ المدفوع أعلى من الحد الأدنى لكل الوحدات (المدفوعة والمجانية).</p>
++                </div>
++                <span>{giftOffers.length} عرض</span>
++              </div>
++              <div className="admin-gift-add">
++                <select
++                  value={giftNewSku}
++                  aria-label="اختر الصنف لعرض الهدية"
++                  onChange={(event) => setGiftNewSku(event.target.value)}
++                >
++                  <option value="">اختر الصنف والوزن</option>
++                  {orderedProducts
++                    .filter((product) => !giftOffers.some((gift) => gift.sku === product.sku))
++                    .map((product) => (
++                      <option key={product.sku} value={product.sku}>
++                        {product.name} — {product.weight} · {product.packageType}
++                      </option>
++                    ))}
++                </select>
++                <button type="button" onClick={addGift} disabled={!giftNewSku}>
++                  إضافة عرض هدية
++                </button>
++              </div>
++              <div className="admin-gift-list">
++                {giftOffers.length === 0 && (
++                  <p>لا توجد عروض هدية بعد.</p>
++                )}
++                {giftOffers.map((gift) => {
++                  const product = productBySku.get(gift.sku);
++                  const price = draft.prices.find((entry) => entry.sku === gift.sku);
++                  const check =
++                    product && price
++                      ? checkGiftFloor(gift, price.price, price.minOfferPrice)
++                      : null;
++                  return (
++                    <article className="admin-gift-row" key={gift.sku}>
++                      <strong>
++                        {product?.name} — {product?.weight} · {product?.packageType}
++                      </strong>
++                      <div className="admin-gift-fields">
++                        <label>
++                          اشترِ
++                          <input
++                            type="number"
++                            min="1"
++                            max="99"
++                            step="1"
++                            value={gift.buyQty}
++                            aria-label={`كمية الشراء ${product?.name}`}
++                            onChange={(event) =>
++                              updateGift(gift.sku, { buyQty: Number(event.target.value) })
++                            }
++                          />
++                        </label>
++                        <label>
++                          مجانًا
++                          <input
++                            type="number"
++                            min="1"
++                            max="99"
++                            step="1"
++                            value={gift.freeQty}
++                            aria-label={`كمية الهدية ${product?.name}`}
++                            onChange={(event) =>
++                              updateGift(gift.sku, { freeQty: Number(event.target.value) })
++                            }
++                          />
++                        </label>
++                        <label>
++                          الحالة
++                          <select
++                            value={gift.status}
++                            onChange={(event) =>
++                              updateGift(gift.sku, { status: event.target.value })
++                            }
++                          >
++                            <option value="active">نشط</option>
++                            <option value="paused">متوقف</option>
++                          </select>
++                        </label>
++                        <label>
++                          من تاريخ
++                          <input
++                            type="date"
++                            value={gift.startDate || ""}
++                            onChange={(event) =>
++                              updateGift(gift.sku, { startDate: event.target.value })
++                            }
++                          />
++                        </label>
++                        <label>
++                          إلى تاريخ
++                          <input
++                            type="date"
++                            value={gift.endDate || ""}
++                            onChange={(event) =>
++                              updateGift(gift.sku, { endDate: event.target.value })
++                            }
++                          />
++                        </label>
++                        <button type="button" onClick={() => removeGift(gift.sku)}>
++                          حذف
++                        </button>
++                      </div>
++                      {check && (
++                        <p
++                          className={check.ok ? "admin-gift-ok" : "admin-gift-bad"}
++                          role={check.ok ? undefined : "alert"}
++                        >
++                          {check.ok ? "✅ " : "❌ "}
++                          المدفوع {formatMoney(check.charged)} ج.م مقابل الحد الأدنى للكمية
++                          الكلية {formatMoney(check.minimumTotal)} ج.م · سعر الوحدة الفعلي{" "}
++                          {formatMoney(check.perUnit)} ج.م
++                          {!check.ok &&
++                            ` · أقصى كمية هدية مسموحة: ${check.maxFreeQty}`}
++                        </p>
++                      )}
++                    </article>
++                  );
++                })}
++              </div>
++            </section>
++          )}
++
+           <div className="admin-catalog-save-row">
+             <button type="submit" disabled={saving}>
+               {saving ? "جاري الحفظ..." : "حفظ التعديلات"}
+diff --git a/src/pages/Checkout.jsx b/src/pages/Checkout.jsx
+index dae216c..18061ee 100644
+--- a/src/pages/Checkout.jsx
++++ b/src/pages/Checkout.jsx
+@@ -1169,7 +1169,11 @@ export default function Checkout() {
+         }
+ 
+         const variant = item.weight ? ` (${item.weight})` : "";
+-        return `• ${item.name}${variant} × ${quantity} — ${price}`;
++        const gift =
++          Number(item.giftQuantity) > 0
++            ? `\n  🎁 هدية: ${item.giftQuantity} × ${item.name}${variant} — مجانًا`
++            : "";
++        return `• ${item.name}${variant} × ${quantity} — ${price}${gift}`;
+       })
+       .join("\n");
+ 
+@@ -2628,12 +2632,19 @@ return (
+ 
+                           </small>
+ 
+-                          {item.promotionLabel && (
++                          {item.promotionLabel && !item.giftQuantity && (
+                             <small className="checkout-promotion-label">
+                               {item.promotionLabel} · {item.discountPercent}%
+                             </small>
+                           )}
+ 
++                          {item.giftQuantity > 0 && (
++                            <small className="checkout-gift-line">
++                              🎁 {item.promotionLabel} · هدية: {item.giftQuantity} × {item.name}
++                              {item.weight ? ` (${item.weight})` : ""} — مجانًا (0 {STORE_CONFIG.currency})
++                            </small>
++                          )}
++
+                           {item.bundleItems?.length > 0 && (
+                             <ul className="checkout-bundle-components">
+                               {item.bundleItems.map((component) => (
+diff --git a/src/pages/admin-catalog.css b/src/pages/admin-catalog.css
+index 9719643..bb7b1cb 100644
+--- a/src/pages/admin-catalog.css
++++ b/src/pages/admin-catalog.css
+@@ -629,3 +629,13 @@
+     flex-direction: column;
+   }
+ }
++
++.admin-gift-add { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
++.admin-gift-add select { flex: 1; min-width: 220px; padding: 8px; }
++.admin-gift-list { display: grid; gap: 12px; }
++.admin-gift-row { border: 1px solid #e7dfc8; border-radius: 12px; padding: 14px; background: #fffef9; }
++.admin-gift-fields { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; margin-top: 10px; }
++.admin-gift-fields label { display: grid; gap: 4px; font-size: 13px; }
++.admin-gift-fields input[type="number"] { width: 70px; }
++.admin-gift-ok { color: #1f5c3a; font-weight: 700; margin: 10px 0 0; }
++.admin-gift-bad { color: #a5412b; font-weight: 700; margin: 10px 0 0; }
+diff --git a/src/services/shippingService.js b/src/services/shippingService.js
+index fef68ba..2f89336 100644
+--- a/src/services/shippingService.js
++++ b/src/services/shippingService.js
+@@ -576,7 +576,7 @@ export function calculateCartWeightKg(
+           0,
+           Number(
+             item?.quantity || 0
+-          )
++          ) + Number(item?.giftQuantity || 0)
+         );
+ 
+       return (
+diff --git a/src/services/storeSettingsService.js b/src/services/storeSettingsService.js
+index 8d64d2d..198a56f 100644
+--- a/src/services/storeSettingsService.js
++++ b/src/services/storeSettingsService.js
+@@ -1,6 +1,7 @@
+ import { supabase } from "../lib/supabase";
+ import { products } from "../data/products";
+ import { productOffers } from "../data/homePromotions";
++import { checkGiftFloor } from "../utils/giftOffers";
+ 
+ const SETTINGS_ROW_ID = "catalog";
+ 
+@@ -47,6 +48,7 @@ const defaultStoreSettings = (() => {
+           ?.discountPercent || 0,
+     })),
+     bundleOffers: [],
++    giftOffers: [],
+   };
+ })();
+ 
+@@ -112,7 +114,6 @@ function validateSettings(settings) {
+       !Number.isFinite(minOfferPrice) ||
+       regularPrice <= 0 ||
+       minOfferPrice <= 0 ||
+-      minOfferPrice < defaults.minOfferPrice ||
+       minOfferPrice > regularPrice
+     ) {
+       throw new Error(`سعر غير صالح للصنف ${sku}`);
+@@ -271,10 +272,56 @@ function validateSettings(settings) {
+     })
+     .filter(Boolean);
+ 
++  const productBySkuForGift = new Map(products.map((product) => [product.sku, product]));
++  const savedGifts = Array.isArray(settings.giftOffers)
++    ? settings.giftOffers
++    : [];
++  const seenGiftSkus = new Set();
++  const giftOffers = savedGifts.map((gift) => {
++    const sku = String(gift.sku || "");
++    const price = priceBySku.get(sku);
++    const buyQty = Number(gift.buyQty);
++    const freeQty = Number(gift.freeQty);
++    const status = gift.status === "active" ? "active" : "paused";
++    const startDate = String(gift.startDate || "");
++    const endDate = String(gift.endDate || "");
++
++    if (
++      !price ||
++      seenGiftSkus.has(sku) ||
++      !Number.isInteger(buyQty) ||
++      !Number.isInteger(freeQty) ||
++      buyQty < 1 ||
++      buyQty > 99 ||
++      freeQty < 1 ||
++      freeQty > 99 ||
++      !isValidDate(startDate) ||
++      !isValidDate(endDate) ||
++      (startDate && endDate && endDate < startDate)
++    ) {
++      throw new Error(`بيانات عرض الهدية للصنف ${sku} غير صالحة.`);
++    }
++    seenGiftSkus.add(sku);
++
++    const check = checkGiftFloor(
++      { buyQty, freeQty },
++      price.price,
++      price.minOfferPrice
++    );
++    if (!check.ok) {
++      throw new Error(
++        `عرض الهدية لصنف "${productBySkuForGift.get(sku)?.name || sku} ${productBySkuForGift.get(sku)?.weight || ""}" يكسر الحد الأدنى: المدفوع ${check.charged.toFixed(2)} أقل من الحد الأدنى للكمية الكلية ${check.minimumTotal.toFixed(2)}. أقصى كمية هدية ${check.maxFreeQty}.`
++      );
++    }
++
++    return { sku, buyQty, freeQty, status, startDate, endDate };
++  });
++
+   return {
+     prices: normalizedPrices,
+     productOffers: normalizedOffers,
+     bundleOffers,
++    giftOffers,
+   };
+ }
+ 
+diff --git a/src/utils/giftOffers.js b/src/utils/giftOffers.js
+new file mode 100644
+index 0000000..f90e9d2
+--- /dev/null
++++ b/src/utils/giftOffers.js
+@@ -0,0 +1,73 @@
++// "Buy N get M free" offers. Stored inside the existing store settings JSON
++// (settings.giftOffers), so no database change is needed.
++let activeGiftOffers = [];
++
++export function getGiftOffers() {
++  return activeGiftOffers;
++}
++
++export function setGiftOffers(offers) {
++  activeGiftOffers = Array.isArray(offers) ? offers : [];
++}
++
++function roundMoney(value) {
++  return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
++}
++
++// Rule: the customer pays for buyQty units at the regular price and gets
++// freeQty units free. The money charged for a group must stay at or above the
++// approved minimum of ALL units in the group (paid + free).
++export function checkGiftFloor(offer, price, minOfferPrice) {
++  const buyQty = Number(offer.buyQty);
++  const freeQty = Number(offer.freeQty);
++  const charged = roundMoney(buyQty * Number(price));
++  const minimumTotal = roundMoney((buyQty + freeQty) * Number(minOfferPrice));
++  return {
++    charged,
++    minimumTotal,
++    ok: charged >= minimumTotal,
++    // highest whole free quantity that keeps the offer above the minimum
++    maxFreeQty: Math.max(
++      0,
++      Math.floor(charged / Number(minOfferPrice)) - buyQty
++    ),
++    perUnit: roundMoney(charged / (buyQty + freeQty)),
++  };
++}
++
++export function isGiftActive(offer, today = new Date()) {
++  if (!offer || offer.status !== "active") {
++    return false;
++  }
++  const day = new Date(today.getTime() - today.getTimezoneOffset() * 60_000)
++    .toISOString()
++    .slice(0, 10);
++  if (offer.startDate && day < offer.startDate) return false;
++  if (offer.endDate && day > offer.endDate) return false;
++  return true;
++}
++
++export function getGiftOfferForSku(sku) {
++  return activeGiftOffers.find(
++    (offer) => offer.sku === sku && isGiftActive(offer)
++  );
++}
++
++// Returns null when no gift applies for this quantity.
++export function getGiftForLine(sku, paidQuantity, price, minOfferPrice) {
++  const offer = getGiftOfferForSku(sku);
++  const quantity = Math.floor(Number(paidQuantity) || 0);
++  if (!offer || quantity < offer.buyQty) {
++    return null;
++  }
++  // Safety net: never give a gift that would break the minimum price.
++  if (!checkGiftFloor(offer, price, minOfferPrice).ok) {
++    return null;
++  }
++  const groups = Math.floor(quantity / offer.buyQty);
++  return {
++    giftQuantity: groups * offer.freeQty,
++    label: `اشترِ ${offer.buyQty} واحصل على ${offer.freeQty} مجانًا`,
++    offer,
++  };
++}

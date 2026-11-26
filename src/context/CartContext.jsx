@@ -10,6 +10,7 @@ import { products } from "../data/products";
 import { groupProducts } from "../utils/productGroups";
 import { useStoreSettings } from "./StoreSettingsContext";
 import { trackCartAddition } from "../utils/metaPixel";
+import { getGiftForLine } from "../utils/giftOffers";
 
 const CartContext = createContext(null);
 
@@ -194,9 +195,41 @@ function normalizeItem(item) {
   };
 }
 
+// Adds the free "gift" units on top of the paid quantity. Paid units are
+// charged at the regular price (the Black Friday single discount does not
+// stack with a gift offer on the same item).
+function withGift(item) {
+  if (item.bundleOfferId || item.bundleItems) {
+    return { ...item, giftQuantity: 0 };
+  }
+  const gift = getGiftForLine(
+    item.sku,
+    item.quantity,
+    item.originalPrice,
+    item.minOfferPrice
+  );
+  if (!gift) {
+    return { ...item, giftQuantity: 0 };
+  }
+  return {
+    ...item,
+    price: Number(item.originalPrice),
+    discountPercent: 0,
+    promotionId: "gift",
+    promotionLabel: gift.label,
+    giftQuantity: gift.giftQuantity,
+  };
+}
+
 export function CartProvider({ children }) {
   const { settings } = useStoreSettings();
-  const [cart, setCart] = useState(readCart);
+  const [rawCart, setCart] = useState(readCart);
+  const cart = useMemo(
+    () => rawCart.map(withGift),
+    // settings changes can change gift offers
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rawCart, settings]
+  );
 
   useEffect(() => {
     setCart((current) => current.map(normalizeItem));
@@ -208,9 +241,9 @@ export function CartProvider({ children }) {
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify(cart)
+      JSON.stringify(rawCart)
     );
-  }, [cart]);
+  }, [rawCart]);
 
   /*
     Add product / exact Variant
