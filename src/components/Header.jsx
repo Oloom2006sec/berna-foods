@@ -49,6 +49,16 @@ export default function Header() {
   }
 
   useEffect(() => {
+    function handleOpenCart() {
+      setMenuOpen(false);
+      setCartOpen(true);
+    }
+
+    window.addEventListener("berna:open-cart", handleOpenCart);
+    return () => window.removeEventListener("berna:open-cart", handleOpenCart);
+  }, []);
+
+  useEffect(() => {
     function handleEscape(event) {
       if (event.key === "Escape") {
         setMenuOpen(false);

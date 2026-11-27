@@ -15,7 +15,7 @@ import {
 
 import { getProductDetails } from "../data/productDetails";
 import { getPromotionPricing } from "../utils/promotionPricing";
-import { getGiftOfferForSku } from "../utils/giftOffers";
+import { getGiftOfferForSku, openCartDrawer } from "../utils/giftOffers";
 import { useStoreSettings } from "../context/StoreSettingsContext";
 import { trackMetaEvent } from "../utils/metaPixel";
 
@@ -288,6 +288,27 @@ export default function ProductDetails() {
     });
 
     setAdded(true);
+  }
+
+  function handleGiftClick() {
+    const giftVariant = selectedGift ? selectedVariant : otherGiftVariant;
+    if (!giftVariant || !detailsGiftOffer) {
+      return;
+    }
+
+    addToCart({
+      ...giftVariant,
+      quantity: Math.max(1, Number(detailsGiftOffer.buyQty) || 1),
+      sku: giftVariant.sku,
+      price: Number(giftVariant.price),
+      originalPrice: Number(giftVariant.price),
+      promotionId: "",
+      promotionLabel: "",
+      discountPercent: 0,
+      weight: giftVariant.weight,
+      weightGrams: Number(giftVariant.weightGrams),
+    });
+    openCartDrawer();
   }
 
   /*
@@ -665,13 +686,17 @@ export default function ProductDetails() {
                 ================================================== */}
 
             {detailsGiftOffer && (
-              <div className="product-details-gift-badge" role="note">
+              <button
+                type="button"
+                className="product-details-gift-badge"
+                onClick={handleGiftClick}
+              >
                 🎁 اشترِ {detailsGiftOffer.buyQty} واحصل على{" "}
                 {detailsGiftOffer.freeQty} مجانًا
                 {otherGiftVariant?.weight
                   ? ` (على عبوة ${otherGiftVariant.weight})`
                   : ""}
-              </div>
+              </button>
             )}
 
             <div className={`product-price${promotion ? " product-price-promo" : ""}`} aria-live="polite">

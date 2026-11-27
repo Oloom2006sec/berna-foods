@@ -1,4 +1,4 @@
-import { getGiftOfferForSku } from "../utils/giftOffers";
+import { getGiftOfferForSku, openCartDrawer } from "../utils/giftOffers";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -252,6 +252,32 @@ export default function ProductCard({ product }) {
     setAdded(true);
   }
 
+  function handleGiftClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const giftVariant = selectedGift ? selectedVariant : otherGiftVariant;
+    if (!giftVariant || !giftOffer) {
+      return;
+    }
+
+    addToCart({
+      ...giftVariant,
+      quantity: Math.max(1, Number(giftOffer.buyQty) || 1),
+      sku: giftVariant.sku,
+      price: Number(giftVariant.price),
+      originalPrice: Number(giftVariant.price),
+      promotionId: "",
+      promotionLabel: "",
+      discountPercent: 0,
+      weight: giftVariant.weight,
+      weightGrams: Number(giftVariant.weightGrams),
+      image: product.image || "",
+      icon: product.icon || "🍯",
+    });
+    openCartDrawer();
+  }
+
   return (
     <article className="product-card">
 
@@ -314,10 +340,15 @@ export default function ProductCard({ product }) {
         </span>
       )}
       {giftOffer && (
-        <span className="product-card-gift-tag">
+        <button
+          type="button"
+          className="product-card-gift-tag"
+          onClick={handleGiftClick}
+          aria-label={`أضف ${giftOffer.buyQty} إلى السلة واحصل على ${giftOffer.freeQty} مجانًا`}
+        >
           🎁 اشترِ {giftOffer.buyQty} واحصل على {giftOffer.freeQty} مجانًا
           {giftWeightNote ? ` (عبوة ${giftWeightNote})` : ""}
-        </span>
+        </button>
       )}
       <ProductPopularityBadge
         productId={product.id}
