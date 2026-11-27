@@ -1056,9 +1056,7 @@ export default function Checkout() {
 
 
 
-      setOrderNumber(
-
-      );
+      setOrderNumber(createdOrder.orderNumber);
 
       setSubmitted(true);
 
