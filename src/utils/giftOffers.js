@@ -71,3 +71,10 @@ export function getGiftForLine(sku, paidQuantity, price, minOfferPrice) {
     offer,
   };
 }
+
+// Lets any component open the cart drawer (Header listens for this event).
+export function openCartDrawer() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("berna:open-cart"));
+  }
+}

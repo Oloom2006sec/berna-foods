@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { groupProducts } from "../utils/productGroups";
+import { openCartDrawer } from "../utils/giftOffers";
 import BundleCompositionImage from "./BundleCompositionImage";
 import CartAddedActions from "./CartAddedActions";
 import ProductPopularityBadge from "./ProductPopularityBadge";
@@ -61,6 +62,7 @@ export default function BundleOffersSection({ bundles = [] }) {
     try {
       addBundleToCart(bundle);
       setAddedBundleId(bundle.id);
+      openCartDrawer();
       setError("");
     } catch (addError) {
       console.error("Add bundle to cart error:", addError);
@@ -212,13 +214,17 @@ export default function BundleOffersSection({ bundles = [] }) {
                     })}
                   </ul>
                   {bundle.giftSku && productsBySku.get(bundle.giftSku) && (
-                    <div className="bundle-offer-gift-badge" role="note">
+                    <button
+                      type="button"
+                      className="bundle-offer-gift-badge"
+                      onClick={() => handleAddBundle(bundle)}
+                    >
                       🎁 هدية مجانًا: {productsBySku.get(bundle.giftSku).name}{" "}
                       {productsBySku.get(bundle.giftSku).weight}
                       {Number(bundle.giftQuantity) > 1
                         ? ` × ${bundle.giftQuantity}`
                         : ""}
-                    </div>
+                    </button>
                   )}
                   <div className="bundle-offer-prices">
                     <del>{formatMoney(regularTotal)} ج.م</del>
