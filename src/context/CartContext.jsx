@@ -321,6 +321,22 @@ export function CartProvider({ children }) {
     if (!Number.isFinite(bundlePrice) || bundlePrice <= 0) {
       throw new Error(`سعر العرض "${bundle.name}" غير صالح.`);
     }
+    const giftProduct = bundle.giftSku
+      ? products.find(
+          (candidate) =>
+            candidate.sku === bundle.giftSku && candidate.available !== false
+        )
+      : null;
+    const giftQuantity = giftProduct ? Number(bundle.giftQuantity) || 0 : 0;
+    const bundleGift =
+      giftProduct && giftQuantity > 0
+        ? {
+            sku: giftProduct.sku,
+            name: giftProduct.name,
+            weight: giftProduct.weight,
+            quantity: giftQuantity,
+          }
+        : null;
     const representative = bundleProducts[0].product;
     const bundleItem = normalizeItem({
       id: `bundle:${bundle.id}`,
@@ -340,11 +356,16 @@ export function CartProvider({ children }) {
       discountPercent: Number(bundle.discountPercent) || 0,
       promotionLabel: `عرض مجموعة: ${bundle.name}`,
       weight: `مجموعة من ${bundleProducts.length} أصناف`,
-      weightGrams: bundleProducts.reduce(
-        (total, item) =>
-          total + Number(item.product.weightGrams || 0) * item.quantity,
-        0
-      ),
+      weightGrams:
+        bundleProducts.reduce(
+          (total, item) =>
+            total + Number(item.product.weightGrams || 0) * item.quantity,
+          0
+        ) +
+        (bundleGift
+          ? Number(giftProduct.weightGrams || 0) * bundleGift.quantity
+          : 0),
+      bundleGift,
       bundleItems: bundleProducts.map(({ product, quantity }) => ({
         sku: product.sku,
         name: product.name,

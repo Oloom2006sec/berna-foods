@@ -174,6 +174,13 @@ export default function CartDrawer({ onClose }) {
                         </ul>
                       )}
 
+                      {item.bundleGift && (
+                        <small className="checkout-gift-line">
+                          🎁 هدية مجانًا: {item.bundleGift.name} {item.bundleGift.weight}
+                          {item.bundleGift.quantity > 1 ? ` × ${item.bundleGift.quantity}` : ""}
+                        </small>
+                      )}
+
                       {/* UNIT PRICE */}
 
                       <small>

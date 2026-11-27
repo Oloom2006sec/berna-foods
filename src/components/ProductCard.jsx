@@ -117,9 +117,16 @@ export default function ProductCard({ product }) {
         selectedVariant.minOfferPrice
       )
     : null;
-  const giftOffer = selectedVariant
+  const selectedGift = selectedVariant
     ? getGiftOfferForSku(selectedVariant.sku)
     : null;
+  const otherGiftVariant = selectedGift
+    ? null
+    : variants.find((variant) => getGiftOfferForSku(variant.sku));
+  const giftOffer =
+    selectedGift ||
+    (otherGiftVariant ? getGiftOfferForSku(otherGiftVariant.sku) : null);
+  const giftWeightNote = otherGiftVariant?.weight || "";
   const reviews = getProductDetails(product.name)?.reviews || [];
   const averageRating = reviews.length
     ? (
@@ -309,6 +316,7 @@ export default function ProductCard({ product }) {
       {giftOffer && (
         <span className="product-card-gift-tag">
           🎁 اشترِ {giftOffer.buyQty} واحصل على {giftOffer.freeQty} مجانًا
+          {giftWeightNote ? ` (عبوة ${giftWeightNote})` : ""}
         </span>
       )}
       <ProductPopularityBadge

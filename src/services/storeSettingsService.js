@@ -229,6 +229,27 @@ function validateSettings(settings) {
         );
       }
 
+      const giftSku = String(bundle.giftSku || "");
+      const giftQuantity = giftSku ? Number(bundle.giftQuantity) : 0;
+      if (giftSku) {
+        if (
+          !knownSkus.has(giftSku) ||
+          !Number.isInteger(giftQuantity) ||
+          giftQuantity < 1 ||
+          giftQuantity > 99
+        ) {
+          throw new Error(`هدية المجموعة "${bundle.name}" غير صالحة.`);
+        }
+        const giftMin = roundMoney(
+          priceBySku.get(giftSku).minOfferPrice * giftQuantity
+        );
+        if (bundlePrice < roundMoney(minimumBundlePrice + giftMin)) {
+          throw new Error(
+            `سعر المجموعة "${bundle.name}" مع الهدية أقل من مجموع الحدود الدنيا (${roundMoney(minimumBundlePrice + giftMin).toFixed(2)} ج.م).`
+          );
+        }
+      }
+
       if (bundlePrice < minimumBundlePrice) {
         throw new Error(
           `سعر المجموعة "${bundle.name}" أقل من مجموع الحدود الدنيا المعتمدة (${minimumBundlePrice.toFixed(2)} ج.م).`
@@ -267,6 +288,8 @@ function validateSettings(settings) {
         items,
         discountPercent,
         bundlePrice,
+        giftSku,
+        giftQuantity,
         enabled: Boolean(status === "active" && !containsRetiredGlass),
       };
     })

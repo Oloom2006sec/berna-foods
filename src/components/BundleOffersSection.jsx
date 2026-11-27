@@ -211,6 +211,15 @@ export default function BundleOffersSection({ bundles = [] }) {
                       );
                     })}
                   </ul>
+                  {bundle.giftSku && productsBySku.get(bundle.giftSku) && (
+                    <div className="bundle-offer-gift-badge" role="note">
+                      🎁 هدية مجانًا: {productsBySku.get(bundle.giftSku).name}{" "}
+                      {productsBySku.get(bundle.giftSku).weight}
+                      {Number(bundle.giftQuantity) > 1
+                        ? ` × ${bundle.giftQuantity}`
+                        : ""}
+                    </div>
+                  )}
                   <div className="bundle-offer-prices">
                     <del>{formatMoney(regularTotal)} ج.م</del>
                     <strong>{formatMoney(bundle.bundlePrice)} ج.م</strong>
