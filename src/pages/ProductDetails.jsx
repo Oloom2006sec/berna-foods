@@ -15,6 +15,7 @@ import {
 
 import { getProductDetails } from "../data/productDetails";
 import { getPromotionPricing } from "../utils/promotionPricing";
+import { getGiftOfferForSku } from "../utils/giftOffers";
 import { useStoreSettings } from "../context/StoreSettingsContext";
 import { trackMetaEvent } from "../utils/metaPixel";
 
@@ -164,6 +165,16 @@ export default function ProductDetails() {
 
   return matchedVariant || customerVariants[0] || null;
 }, [group, customerVariants, selectedWeight]);
+
+  const selectedGift = selectedVariant
+    ? getGiftOfferForSku(selectedVariant.sku)
+    : null;
+  const otherGiftVariant = selectedGift
+    ? null
+    : customerVariants.find((variant) => getGiftOfferForSku(variant.sku));
+  const detailsGiftOffer =
+    selectedGift ||
+    (otherGiftVariant ? getGiftOfferForSku(otherGiftVariant.sku) : null);
 
   const maxVariantWeight = customerVariants.reduce(
     (maxWeight, variant) =>
@@ -652,6 +663,16 @@ export default function ProductDetails() {
             {/* ==================================================
                 PRICE
                 ================================================== */}
+
+            {detailsGiftOffer && (
+              <div className="product-details-gift-badge" role="note">
+                🎁 اشترِ {detailsGiftOffer.buyQty} واحصل على{" "}
+                {detailsGiftOffer.freeQty} مجانًا
+                {otherGiftVariant?.weight
+                  ? ` (على عبوة ${otherGiftVariant.weight})`
+                  : ""}
+              </div>
+            )}
 
             <div className={`product-price${promotion ? " product-price-promo" : ""}`} aria-live="polite">
               {selectedVariant ? (

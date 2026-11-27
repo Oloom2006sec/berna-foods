@@ -1161,9 +1161,14 @@ export default function Checkout() {
                 `  - ${component.name} ${component.weight} × ${component.quantity}`
             )
             .join("\n");
+          const bundleGiftText = item.bundleGift
+            ? `\n  🎁 هدية: ${item.bundleGift.name} ${item.bundleGift.weight} × ${
+                Number(item.bundleGift.quantity) * quantity
+              } — مجانًا`
+            : "";
           return `• ${item.bundleName} × ${quantity} — ${price}${
             components ? `\n${components}` : ""
-          }`;
+          }${bundleGiftText}`;
         }
 
         const variant = item.weight ? ` (${item.weight})` : "";
@@ -2640,6 +2645,13 @@ return (
                             <small className="checkout-gift-line">
                               🎁 {item.promotionLabel} · هدية: {item.giftQuantity} × {item.name}
                               {item.weight ? ` (${item.weight})` : ""} — مجانًا (0 {STORE_CONFIG.currency})
+                            </small>
+                          )}
+
+                          {item.bundleGift && (
+                            <small className="checkout-gift-line">
+                              🎁 هدية مجانًا: {item.bundleGift.name} {item.bundleGift.weight}
+                              {item.bundleGift.quantity > 1 ? ` × ${item.bundleGift.quantity}` : ""}
                             </small>
                           )}
 

@@ -23,6 +23,8 @@ function createBundleDraft() {
     selectedSku: products.find((product) => product.available !== false)?.sku || "",
     selectedQuantity: 1,
     discountPercent: 0,
+    giftSku: "",
+    giftQuantity: 1,
     items: [],
   };
 }
@@ -313,6 +315,23 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
       return;
     }
 
+    const giftSku = bundleDraft.giftSku || "";
+    const giftQuantity = giftSku ? Number(bundleDraft.giftQuantity) : 0;
+    if (giftSku) {
+      const giftPrice = draft.prices.find((price) => price.sku === giftSku);
+      const giftMin = Number(giftPrice?.minOfferPrice || 0) * giftQuantity;
+      if (
+        !Number.isInteger(giftQuantity) ||
+        giftQuantity < 1 ||
+        totals.bundlePrice < totals.minimumPrice + giftMin
+      ) {
+        setSaveError(
+          "هدية المجموعة تكسر الحد الأدنى: قلل خصم المجموعة أو كمية الهدية."
+        );
+        return;
+      }
+    }
+
     const newBundle = {
       id: editingBundleId || crypto.randomUUID(),
       name,
@@ -324,6 +343,8 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
       items: bundleDraft.items,
       discountPercent,
       bundlePrice: totals.bundlePrice,
+      giftSku,
+      giftQuantity,
       enabled: bundleDraft.status === "active",
     };
 
@@ -839,6 +860,43 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
                         }
                       />
                       <small>أقصى خصم مسموح: {bundleTotals.maxDiscountPercent}%</small>
+                    </label>
+                    <label>
+                      هدية المجموعة (اختياري)
+                      <select
+                        value={bundleDraft.giftSku || ""}
+                        onChange={(event) =>
+                          setBundleDraft((current) => ({
+                            ...current,
+                            giftSku: event.target.value,
+                          }))
+                        }
+                      >
+                        <option value="">بدون هدية</option>
+                        {products
+                          .filter((product) => product.available !== false)
+                          .map((product) => (
+                            <option key={product.sku} value={product.sku}>
+                              {product.name} {product.weight}
+                            </option>
+                          ))}
+                      </select>
+                      {bundleDraft.giftSku && (
+                        <input
+                          type="number"
+                          min="1"
+                          max="99"
+                          step="1"
+                          value={bundleDraft.giftQuantity || 1}
+                          onChange={(event) =>
+                            setBundleDraft((current) => ({
+                              ...current,
+                              giftQuantity: event.target.value,
+                            }))
+                          }
+                        />
+                      )}
+                      <small>الهدية بتتحسب في وزن الشحن وبتتجاب فوق الحد الأدنى للسعر.</small>
                     </label>
                     <div>
                       <span>قيمة الخصم</span>
