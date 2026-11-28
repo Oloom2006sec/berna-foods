@@ -209,7 +209,7 @@ body {
   color: var(--berna-forest-deep);
   font: inherit;
   font-size: 24px;
-  line-height: 1;
+  line-height: 0.75;
   cursor: pointer;
   transform: translateY(-50%);
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -1392,7 +1392,7 @@ body {
   color: #b9432e;
   font: inherit;
   font-size: 23px;
-  line-height: 1;
+  line-height: 0.75;
   cursor: pointer;
   transform: translateY(-50%);
   transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
@@ -1552,7 +1552,7 @@ body {
   color: var(--berna-forest-deep);
   font: inherit;
   font-size: 24px;
-  line-height: 1;
+  line-height: 0.75;
   cursor: pointer;
   transform: translateY(-50%);
 }
@@ -2716,7 +2716,7 @@ body {
   background: rgba(255, 254, 250, 0.9);
   color: var(--berna-forest-deep);
   font-size: 24px;
-  line-height: 1;
+  line-height: 0.75;
 }
 
 .campaign-popup-close:hover {
@@ -2934,4 +2934,19 @@ button.product-details-gift-badge,
 button.bundle-offer-gift-badge {
   padding: 11px 22px;
   font-size: 15px;
+}
+
+.promo-flash-gift-badge,
+.home-offer-gift-badge {
+  margin: 8px auto;
+  text-align: center;
+  max-width: 100%;
+}
+
+/* Gift badge icon only: enlarge the leading gift emoji, text size and badge box unchanged. */
+button.product-card-gift-tag::first-letter,
+button.product-details-gift-badge::first-letter,
+button.bundle-offer-gift-badge::first-letter {
+  font-size: 1.8em;
+  line-height: 0.75;
 }

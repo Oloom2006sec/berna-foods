@@ -137,7 +137,8 @@ function normalizeItem(item) {
   const promotion = getPromotionPricing(
     item.name,
     originalPrice,
-    minOfferPrice
+    minOfferPrice,
+    item.sku
   );
 
   return {

@@ -349,3 +349,15 @@ export function findVariant(
     ) || null
   );
 }
+
+// Default size shown for a product: the largest size that has a valid price.
+// Expects any list of variants (any order). Falls back to the largest size,
+// then to nothing for an empty list.
+export function getDefaultVariant(variants) {
+  const list = Array.isArray(variants) ? variants : [];
+  const bySize = [...list].sort(
+    (a, b) => Number(a.weightGrams) - Number(b.weightGrams)
+  );
+  const priced = bySize.filter((variant) => Number(variant.price) > 0);
+  return (priced.length ? priced : bySize).at(-1);
+}

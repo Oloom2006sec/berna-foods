@@ -639,3 +639,19 @@
 .admin-gift-fields input[type="number"] { width: 70px; }
 .admin-gift-ok { color: #1f5c3a; font-weight: 700; margin: 10px 0 0; }
 .admin-gift-bad { color: #a5412b; font-weight: 700; margin: 10px 0 0; }
+
+.admin-size-discounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-size-discount {
+  display: grid;
+  gap: 4px;
+  min-width: 96px;
+}
+
+.admin-size-discount input {
+  width: 100%;
+}

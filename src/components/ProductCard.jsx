@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
+import { getDefaultVariant } from "../utils/productGroups";
 import { getProductDetails } from "../data/productDetails";
 import { getPromotionPricing } from "../utils/promotionPricing";
 import { useStoreSettings } from "../context/StoreSettingsContext";
@@ -80,7 +81,7 @@ export default function ProductCard({ product }) {
   */
 
   const [selectedSku, setSelectedSku] =
-    useState(variants[0]?.sku || "");
+    useState(getDefaultVariant(variants)?.sku || "");
 
   /*
     ============================================================
@@ -109,12 +110,13 @@ export default function ProductCard({ product }) {
     variants.find(
       (variant) =>
         variant.sku === selectedSku
-    ) || variants[0];
+    ) || getDefaultVariant(variants);
   const promotion = selectedVariant
     ? getPromotionPricing(
         product.name,
         selectedVariant.price,
-        selectedVariant.minOfferPrice
+        selectedVariant.minOfferPrice,
+        selectedVariant.sku
       )
     : null;
   const selectedGift = selectedVariant

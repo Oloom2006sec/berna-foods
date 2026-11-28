@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { campaign } from "../data/homePromotions";
+import { getOfferMaxPercent } from "../utils/promotionPricing";
 import { useStoreSettings } from "../context/StoreSettingsContext";
 
 const dismissedStorageKey = "berna-campaign-popup-dismissed";
@@ -8,7 +9,7 @@ export default function CampaignPopup() {
   const { settings } = useStoreSettings();
   const maximumDiscount = Math.max(
     0,
-    ...settings.productOffers.map((offer) => Number(offer.discountPercent) || 0)
+    ...settings.productOffers.map((offer) => getOfferMaxPercent(offer))
   );
   const [isOpen, setIsOpen] = useState(
     () =>
