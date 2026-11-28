@@ -1,14 +1,37 @@
 import { Link } from "react-router-dom";
 import { getProductDetails } from "../data/productDetails";
 import { campaign } from "../data/homePromotions";
-import { getPromotionPricing } from "../utils/promotionPricing";
+import { getBestPromotionVariant } from "../utils/promotionPricing";
+import { getGiftOfferForSku, openCartDrawer } from "../utils/giftOffers";
+import { useCart } from "../context/CartContext";
 import ProductPopularityBadge from "./ProductPopularityBadge";
 
 export default function HomeOfferCard({ product, discountPercent }) {
-  const variant = product.customerVariants?.[0] || product.variants?.[0];
-  const promotion = variant
-    ? getPromotionPricing(product.name, variant.price, variant.minOfferPrice)
-    : null;
+  const { addToCart } = useCart();
+  const { variant, promotion } = getBestPromotionVariant(product);
+  const allVariants = product.customerVariants?.length
+    ? product.customerVariants
+    : product.variants || [];
+  const giftVariant = allVariants.find((item) => getGiftOfferForSku(item.sku));
+  const giftOffer = giftVariant ? getGiftOfferForSku(giftVariant.sku) : null;
+
+  function handleGiftClick() {
+    addToCart({
+      ...giftVariant,
+      name: product.name,
+      image: product.image || "",
+      quantity: Math.max(1, Number(giftOffer.buyQty) || 1),
+      sku: giftVariant.sku,
+      price: Number(giftVariant.price),
+      originalPrice: Number(giftVariant.price),
+      promotionId: "",
+      promotionLabel: "",
+      discountPercent: 0,
+      weight: giftVariant.weight,
+      weightGrams: Number(giftVariant.weightGrams),
+    });
+    openCartDrawer();
+  }
   const actualDiscountPercent = promotion?.discountPercent ?? discountPercent;
   const reviews = getProductDetails(product.name)?.reviews || [];
   const rating = reviews.length
@@ -51,11 +74,21 @@ export default function HomeOfferCard({ product, discountPercent }) {
             <small>({reviews.length})</small>
           </div>
         )}
-        <small className="home-offer-weight">يبدأ من {variant.weight}</small>
+        <small className="home-offer-weight">الخصم على عبوة {variant.weight}</small>
         <div className="home-offer-price">
           <del>{promotion.originalPrice.toFixed(2)} ج.م</del>
           <strong>{promotion.price.toFixed(2)} ج.م</strong>
         </div>
+        {giftOffer && (
+          <button
+            type="button"
+            className="product-details-gift-badge home-offer-gift-badge"
+            onClick={handleGiftClick}
+          >
+            🎁 اشترِ {giftOffer.buyQty} واحصل على {giftOffer.freeQty} مجانًا
+            {giftVariant.weight ? ` (عبوة ${giftVariant.weight})` : ""}
+          </button>
+        )}
         <Link className="home-offer-action" to={`/products/${product.id}`}>
           شاهد العرض واختر الوزن
         </Link>

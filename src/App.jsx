@@ -11,6 +11,7 @@ import {
 
 import Header from "./components/Header";
 import CampaignPopup from "./components/CampaignPopup";
+import { isOfferActive } from "./utils/promotionPricing";
 import HomeOfferCard from "./components/HomeOfferCard";
 import PromoFlashShowcase from "./components/PromoFlashShowcase";
 import BundleOffersSection from "./components/BundleOffersSection";
@@ -49,7 +50,7 @@ function HomePage() {
     groupedProducts.find((product) => product.name === name);
   const campaignProductNames = new Set(
     settings.productOffers
-      .filter((offer) => Number(offer.discountPercent) > 0)
+      .filter((offer) => isOfferActive(offer))
       .map((offer) => offer.productName)
   );
   const productOutsideCampaign = (product) =>
@@ -63,7 +64,7 @@ function HomePage() {
     .map(productByName)
     .filter(productOutsideCampaign);
   const promotionProducts = settings.productOffers
-    .filter((offer) => Number(offer.discountPercent) > 0)
+    .filter((offer) => isOfferActive(offer))
     .map((offer) => ({
       ...offer,
       product: productByName(offer.productName),

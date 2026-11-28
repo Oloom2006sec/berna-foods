@@ -188,6 +188,21 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
     setSuccess("");
   }
 
+  function updateSizeDiscount(productName, sku, value) {
+    setDraft((current) => ({
+      ...current,
+      productOffers: current.productOffers.map((offer) =>
+        offer.productName === productName
+          ? {
+              ...offer,
+              sizeDiscounts: { ...(offer.sizeDiscounts || {}), [sku]: value },
+            }
+          : offer
+      ),
+    }));
+    setSuccess("");
+  }
+
   function updateDiscount(productName, value) {
     setDraft((current) => ({
       ...current,
@@ -596,6 +611,72 @@ function AdminCatalogEditor({ settings, settingsError, saveSettings }) {
                     </span>
                   </label>
                 ))}
+              </div>
+              <div className="admin-catalog-panel-heading">
+                <div>
+                  <h2>خصم لكل حجم (اختياري)</h2>
+                  <p>
+                    اترك الخانة فاضية ليتبع الحجم نسبة المنتج فوق. اكتب نسبة
+                    (حتى 0 لإلغاء الخصم) لتحديد خصم خاص بهذا الحجم. السعر
+                    النهائي لا يقل عن الحد الأدنى.
+                  </p>
+                </div>
+              </div>
+              <div className="admin-offer-list">
+                {draft.productOffers.map((offer) => {
+                  const sizes = products.filter(
+                    (product) =>
+                      product.name === offer.productName &&
+                      product.available !== false
+                  );
+                  return (
+                    <div className="admin-offer-row" key={offer.productName}>
+                      <span>
+                        <strong>{offer.productName}</strong>
+                        <small>نسبة المنتج: {offer.discountPercent}%</small>
+                      </span>
+                      <span className="admin-size-discounts">
+                        {sizes.map((size) => {
+                          const price = draft.prices.find(
+                            (entry) => entry.sku === size.sku
+                          );
+                          const own = offer.sizeDiscounts?.[size.sku] ?? "";
+                          const percent =
+                            own === "" ? Number(offer.discountPercent) : Number(own);
+                          const regular = Number(price?.price || 0);
+                          const minimum = Number(price?.minOfferPrice || 0);
+                          const raw = regular * (1 - (percent || 0) / 100);
+                          const final = Math.max(minimum, raw);
+                          return (
+                            <label key={size.sku} className="admin-size-discount">
+                              <small>{size.weight}</small>
+                              <input
+                                type="number"
+                                min="0"
+                                max="90"
+                                step="1"
+                                placeholder={String(offer.discountPercent)}
+                                value={own}
+                                aria-label={`خصم ${offer.productName} ${size.weight}`}
+                                onChange={(event) =>
+                                  updateSizeDiscount(
+                                    offer.productName,
+                                    size.sku,
+                                    event.target.value
+                                  )
+                                }
+                              />
+                              <small>
+                                {final.toFixed(2)} ج.م
+                                {raw < minimum ? " (وصل للحد الأدنى)" : ""}
+                              </small>
+                            </label>
+                          );
+                        })}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}

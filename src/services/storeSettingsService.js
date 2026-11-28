@@ -134,7 +134,35 @@ function validateSettings(settings) {
         throw new Error(`نسبة خصم غير صالحة للصنف ${productName}`);
       }
 
-      return { productName, discountPercent };
+      // Optional per-size discounts: { [sku]: percent }. Empty = use the
+      // product-level percent for that size.
+      const sizeDiscounts = {};
+      for (const [sizeSku, value] of Object.entries(
+        offer.sizeDiscounts || {}
+      )) {
+        if (value === "" || value === null || value === undefined) {
+          continue;
+        }
+        const percent = Number(value);
+        const belongs = products.some(
+          (product) => product.sku === sizeSku && product.name === productName
+        );
+        if (
+          !belongs ||
+          !Number.isFinite(percent) ||
+          percent < 0 ||
+          percent > 90
+        ) {
+          throw new Error(
+            `نسبة خصم الحجم غير صالحة للصنف ${productName}`
+          );
+        }
+        sizeDiscounts[sizeSku] = percent;
+      }
+
+      return Object.keys(sizeDiscounts).length > 0
+        ? { productName, discountPercent, sizeDiscounts }
+        : { productName, discountPercent };
     }
   );
   const priceBySku = new Map(

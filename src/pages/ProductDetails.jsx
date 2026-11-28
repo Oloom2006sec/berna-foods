@@ -9,6 +9,7 @@ import { useCart } from "../context/CartContext";
 
 import {
   findVariant,
+  getDefaultVariant,
   getProductGroupByParam,
   groupProducts,
 } from "../utils/productGroups";
@@ -138,7 +139,7 @@ export default function ProductDetails() {
     }
 
     setSelectedWeight(
-      Number(customerVariants[0].weightGrams)
+      Number(getDefaultVariant(customerVariants).weightGrams)
     );
 
     setQuantity(1);
@@ -163,7 +164,7 @@ export default function ProductDetails() {
       Number(variant.weightGrams) === targetWeight
   );
 
-  return matchedVariant || customerVariants[0] || null;
+  return matchedVariant || getDefaultVariant(customerVariants) || null;
 }, [group, customerVariants, selectedWeight]);
 
   const selectedGift = selectedVariant
@@ -195,7 +196,8 @@ export default function ProductDetails() {
     ? getPromotionPricing(
         group?.name,
         selectedVariant.price,
-        selectedVariant.minOfferPrice
+        selectedVariant.minOfferPrice,
+        selectedVariant.sku
       )
     : null;
 

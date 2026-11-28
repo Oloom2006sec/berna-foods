@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { groupProducts } from "../utils/productGroups";
-import { getPromotionPricing } from "../utils/promotionPricing";
+import {
+  getBestPromotionVariant,
+  getPromotionPricing,
+} from "../utils/promotionPricing";
+import { getGiftOfferForSku, openCartDrawer } from "../utils/giftOffers";
+import { products as catalogProducts } from "../data/products";
 import BundleCompositionImage from "./BundleCompositionImage";
 import CartAddedActions from "./CartAddedActions";
 import ProductPopularityBadge from "./ProductPopularityBadge";
@@ -103,13 +108,14 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
       addBundleToCart(bundle);
       setAddedBundleId(bundle.id);
       setIsPaused(true);
+      openCartDrawer();
     } catch (error) {
       console.error("Add hero bundle to cart error:", error);
     }
   }
 
   function handleAddProduct(product, discountPercent) {
-    const variant = product.customerVariants?.[0] || product.variants?.[0];
+    const { variant } = getBestPromotionVariant(product);
     if (!variant) {
       return;
     }
@@ -117,7 +123,8 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
     const promotion = getPromotionPricing(
       product.name,
       variant.price,
-      variant.minOfferPrice
+      variant.minOfferPrice,
+      variant.sku
     );
 
     try {
@@ -126,12 +133,9 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
         name: product.name,
         image: product.image || "",
         quantity: 1,
-        price:
-          promotion?.price ??
-          Number(variant.price) * (1 - Number(discountPercent || 0) / 100),
+        price: promotion?.price ?? Number(variant.price),
         originalPrice: promotion?.originalPrice ?? Number(variant.price),
-        discountPercent:
-          promotion?.discountPercent ?? Number(discountPercent || 0),
+        discountPercent: promotion?.discountPercent ?? 0,
       });
       setAddedProductId(product.id);
       setIsPaused(true);
@@ -140,7 +144,34 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
     }
   }
 
+  // Gift badge click on a product slide: add the gift variant (buy qty) + open cart.
+  function handleGiftProduct(product, giftVariant, giftOffer) {
+    try {
+      addToCart({
+        ...giftVariant,
+        name: product.name,
+        image: product.image || "",
+        quantity: Math.max(1, Number(giftOffer.buyQty) || 1),
+        sku: giftVariant.sku,
+        price: Number(giftVariant.price),
+        originalPrice: Number(giftVariant.price),
+        promotionId: "",
+        promotionLabel: "",
+        discountPercent: 0,
+        weight: giftVariant.weight,
+        weightGrams: Number(giftVariant.weightGrams),
+      });
+      openCartDrawer();
+    } catch (error) {
+      console.error("Add hero gift product to cart error:", error);
+    }
+  }
+
   const bundle = activeOffer.type === "bundle" ? activeOffer.bundle : null;
+  const bundleGiftProduct =
+    bundle && bundle.giftSku
+      ? catalogProducts.find((item) => item.sku === bundle.giftSku)
+      : null;
   const bundleProducts = bundle ? activeOffer.products : [];
   const regularBundleTotal = bundle
     ? bundleProducts.reduce(
@@ -191,6 +222,7 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
                 activeOffer.discountPercent
               )
             }
+            onGift={handleGiftProduct}
             onContinue={() => {
               setAddedProductId("");
               setIsPaused(false);
@@ -239,6 +271,18 @@ export default function PromoFlashShowcase({ offers = [], bundles = [] }) {
                 </small>
               </span>
             </Link>
+            {bundleGiftProduct && (
+              <button
+                type="button"
+                className="bundle-offer-gift-badge promo-flash-gift-badge"
+                onClick={() => handleAddBundle(bundle)}
+              >
+                🎁 هدية مجانًا: {bundleGiftProduct.name} {bundleGiftProduct.weight}
+                {Number(bundle.giftQuantity) > 1
+                  ? ` × ${bundle.giftQuantity}`
+                  : ""}
+              </button>
+            )}
             {addedBundleId === bundle.id ? (
               <CartAddedActions
                 className="cart-added-actions-promo-bundle"
@@ -302,13 +346,16 @@ function ProductSlide({
   discountPercent,
   added,
   onAdd,
+  onGift,
   onContinue,
 }) {
-  const variant = product.customerVariants?.[0] || product.variants?.[0];
-  const promotion = variant
-    ? getPromotionPricing(product.name, variant.price, variant.minOfferPrice)
-    : null;
+  const { promotion } = getBestPromotionVariant(product);
   const actualDiscountPercent = promotion?.discountPercent ?? discountPercent;
+  const allVariants = product.customerVariants?.length
+    ? product.customerVariants
+    : product.variants || [];
+  const giftVariant = allVariants.find((item) => getGiftOfferForSku(item.sku));
+  const giftOffer = giftVariant ? getGiftOfferForSku(giftVariant.sku) : null;
 
   return (
     <div className="promo-flash-product-wrap">
@@ -345,6 +392,16 @@ function ProductSlide({
           )}
         </span>
       </Link>
+      {giftOffer && (
+        <button
+          type="button"
+          className="product-details-gift-badge promo-flash-gift-badge"
+          onClick={() => onGift(product, giftVariant, giftOffer)}
+        >
+          🎁 اشترِ {giftOffer.buyQty} واحصل على {giftOffer.freeQty} مجانًا
+          {giftVariant.weight ? ` (عبوة ${giftVariant.weight})` : ""}
+        </button>
+      )}
       {added ? (
         <CartAddedActions
           className="cart-added-actions-promo"
